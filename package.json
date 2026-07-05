@@ -1,0 +1,23 @@
+{
+  "name": "slithergrid",
+  "version": "1.0.0",
+  "description": "A neon-grid take on the classic snake game. Eat. Grow. Don't die.",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test/game.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mabotrulz/slithergrid.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mabotrulz/slithergrid/issues"
+  },
+  "homepage": "https://github.com/mabotrulz/slithergrid#readme",
+  "devDependencies": {
+    "jsdom": "^29.1.1"
+  }
+}
