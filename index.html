@@ -250,14 +250,16 @@
   let gameTick = 0;
 
   function calcGrid() {
-    const w = canvas.width;
-    const h = canvas.height;
-    const cellSize = Math.max(8, Math.floor(Math.min(w, h) / Math.floor(Math.min(w, h) / GRID)));
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width;
+    const h = rect.height;
+    const cellSize = Math.max(10, Math.floor(Math.min(w, h) / GRID));
     COLS = Math.floor(w / cellSize);
     ROWS = Math.floor(h / cellSize);
     CELL = Math.min(w / COLS, h / ROWS);
-    canvas.width = COLS * CELL;
-    canvas.height = ROWS * CELL;
+    // Round to avoid sub-pixel gaps
+    canvas.width = Math.round(COLS * CELL);
+    canvas.height = Math.round(ROWS * CELL);
   }
 
   function init() {
@@ -732,10 +734,9 @@
 
   // Resize
   function onResize() {
-    if (!running) {
-      calcGrid();
-      draw();
-    }
+    calcGrid();
+    if (running) return;
+    draw();
   }
   window.addEventListener('resize', onResize);
 
