@@ -335,35 +335,30 @@ function rainbowParticles(segs){
 function moveSnake(idx,dir){
   const sd=snakes[idx];const isPlayer=idx===0;
   const head={x:(sd[0].x+dir.x+COLS)%COLS,y:(sd[0].y+dir.y+ROWS)%ROWS};
-
-  // Self collision
+  window._lastDodge=0;
   if(sd.some(s=>s.x===head.x&&s.y===head.y))return{dead:true};
-
-  // Other snakes collision
   for(let oi=0;oi<snakes.length;oi++){
     if(oi===idx)continue;
     const os=snakes[oi];const oH=os[0];
     const hitB=os.findIndex((s,i)=>i>0&&s.x===head.x&&s.y===head.y);
     if(hitB>0){
-    const boost=isPlayer?playerBoost:aiBoosts[idx-1];
-    const oBoost=oi===0?playerBoost:aiBoosts[oi-1];
-    if(boost>0){
-      const cut=os.splice(hitB);rainbowParticles(cut);
-      if(isPlayer){
-        score+=Math.floor(cut.length/3)+1;scoreEl.textContent=score;
-        const hs=parseInt(localStorage.getItem('slithergrid_high')||'0');
-        if(score>hs){localStorage.setItem('slithergrid_high',score);highEl.textContent=score}
-      }else{ais[idx-1].score+=Math.floor(cut.length/3)+1;/*score hidden*/}
-      if(os.length<3)return{cutKill:oi};
-    }else{
-      if(oBoost>0&&oi!==0){}
-      return{dead:true};
-    }
+      const boost=isPlayer?playerBoost:aiBoosts[idx-1];
+      const oBoost=oi===0?playerBoost:aiBoosts[oi-1];
+      if(boost>0){
+        const cut=os.splice(hitB);rainbowParticles(cut);
+        if(isPlayer){
+          score+=Math.floor(cut.length/3)+1;scoreEl.textContent=score;
+          const hs=parseInt(localStorage.getItem('slithergrid_high')||'0');
+          if(score>hs){localStorage.setItem('slithergrid_high',score);highEl.textContent=score}
+        }else{ais[idx-1].score+=Math.floor(cut.length/3)+1;}
+        if(os.length<3)return{cutKill:oi};
+      }else{
+        if(oBoost>0&&oi!==0){}
+        return{dead:true};
+      }
     }
     if(head.x===oH.x&&head.y===oH.y){
-      // Try to dodge left or right instead of dying — lose 1 segment
       const perps=[{x:dir.y,y:-dir.x},{x:-dir.y,y:dir.x}];
-      let dodged=false;
       for(const pd of perps){
         const nhx=(sd[0].x+pd.x+COLS)%COLS,nhy=(sd[0].y+pd.y+ROWS)%ROWS;
         let blocked=false;
@@ -371,51 +366,37 @@ function moveSnake(idx,dir){
         if(!blocked&&!bombs.some(b=>b.x===nhx&&b.y===nhy)){
           head.x=nhx;head.y=nhy;
           if(isPlayer)window._playerDir={...pd};
-          dodged=true;break;
+          window._lastDodge=1;break;
         }
       }
-      if(!dodged)return{dead:true};
+      if(!window._lastDodge)return{dead:true};
     }
   }
-
-  // Bomb
   const hb=bombs.find(b=>b.x===head.x&&b.y===head.y);
   if(hb){
     spawnParticles(hb.x,hb.y,'#ff3344',25,true);spawnParticles(hb.x,hb.y,'#ffcc00',15,true);
     bombs=bombs.filter(b=>b!==hb);const cl=Math.max(2,Math.floor(sd.length*0.35));
     if(sd.length-cl<3)return{dead:true};sd.splice(sd.length-cl,cl);
   }
-
-  // Power-ups
   if(powerUps.rainbow&&head.x===powerUps.rainbow.x&&head.y===powerUps.rainbow.y){
     powerUps.rainbow=null;spawnParticles(head.x,head.y,'#ffd700',25,true);
     if(isPlayer)playerBoost=BOOST_DURATION;else aiBoosts[idx-1]=BOOST_DURATION;
-    hintEl.textContent=isPlayer?'⚡ RAINBOW BOOST! Cut through snakes!':'';
-    hintEl.style.color='#ffd700';
-    if(isPlayer)setTimeout(()=>{hintEl.textContent='W A S D · Arrows · Swipe';hintEl.style.color='#444';},2000);
   }
   if(powerUps.yellow&&head.x===powerUps.yellow.x&&head.y===powerUps.yellow.y){
     powerUps.yellow=null;spawnParticles(head.x,head.y,'#ffd700',25,true);
-    for(let i=0;i<3;i++)sd.push({...sd[sd.length-1]}); // grow by 3
-    hintEl.textContent=isPlayer?'🐍 +3 segments!':'';
-    hintEl.style.color='#ffd700';
-    if(isPlayer)setTimeout(()=>{hintEl.textContent='W A S D · Arrows · Swipe';hintEl.style.color='#444';},2000);
+    for(let i=0;i<3;i++)sd.push({...sd[sd.length-1]});
   }
-
   sd.unshift(head);
   if(head.x===food.x&&head.y===food.y){
     if(isPlayer){score++;scoreEl.textContent=score;
       const hs=parseInt(localStorage.getItem('slithergrid_high')||'0');
       if(score>hs){localStorage.setItem('slithergrid_high',score);highEl.textContent=score}}
-    else{ais[idx-1].score++;/*score hidden*/}
+    else{ais[idx-1].score++;}
     spawnParticles(food.x,food.y,'#00ffaa',20);spawnFood();
-  }else if(!hb&&!dodged)sd.pop();
-  // Dodge penalty: lose 1 extra segment
-  if(dodged){const loseD=sd.pop();if(sd.length<3)return{dead:true};}
+  }else if(!hb)sd.pop();
+  if(window._lastDodge){const loseD=sd.pop();window._lastDodge=0;if(sd.length<3)return{dead:true};}
   return{dead:false};
 }
-
-
 function aiThink(i){
   const head=snakes[i+1][0];const ai=ais[i];
   let tx=food.x,ty=food.y;
@@ -518,7 +499,7 @@ function endGame(title,sc,msg){
 function startGame(){
   setupScreen.classList.remove('active');
   if(gameLoop)clearInterval(gameLoop);
-  init();window._playerDir={x:1,y:0};
+  init();window._playerDir={x:1,y:0};window._lastDodge=0;
   running=true;TICK=BASE_TICK;
   gameLoop=setInterval(gameTickFn,TICK);
   draw();
