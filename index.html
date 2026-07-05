@@ -262,14 +262,13 @@
 
   function init() {
     calcGrid();
-    const midX = Math.floor(COLS / 3);
-    const midY = Math.floor(ROWS / 2);
-    snake = [{x: midX, y: midY}, {x: midX - 1, y: midY}, {x: midX - 2, y: midY}];
+    // Player starts top-left, facing right
+    snake = [{x: 3, y: 3}, {x: 2, y: 3}, {x: 1, y: 3}];
     direction = {x: 1, y: 0};
     nextDirection = {x: 1, y: 0};
 
-    const aiX = Math.floor(COLS * 2 / 3);
-    aiSnake = [{x: aiX, y: midY}, {x: aiX + 1, y: midY}, {x: aiX + 2, y: midY}];
+    // AI starts bottom-right, facing left
+    aiSnake = [{x: COLS - 4, y: ROWS - 4}, {x: COLS - 3, y: ROWS - 4}, {x: COLS - 2, y: ROWS - 4}];
     aiDirection = {x: -1, y: 0};
     aiNextDirection = {x: -1, y: 0};
 
