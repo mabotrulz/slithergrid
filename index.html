@@ -5,909 +5,561 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>SlitherGrid</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    body {
-      background: #0a0a0f;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      min-height: 100dvh;
-      font-family: 'Courier New', monospace;
-      overflow: hidden;
-      touch-action: none;
-    }
-
-    .game-wrapper {
-      position: relative;
-      width: 100vw;
-      height: 100vh;
-      height: 100dvh;
-      background: #0d0d18;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px 16px;
-      background: #111118;
-      border-bottom: 1px solid #1a1a2e;
-      flex-shrink: 0;
-    }
-
-    h1 {
-      color: #00ffaa;
-      font-size: clamp(12px, 3vw, 22px);
-      font-weight: 400;
-      letter-spacing: 0.3em;
-      text-transform: uppercase;
-      text-shadow: 0 0 20px rgba(0, 255, 170, 0.3);
-      white-space: nowrap;
-    }
-
-    .stats {
-      display: flex;
-      gap: 12px;
-    }
-
-    .stat { text-align: center; min-width: 50px; }
-
-    .stat-label {
-      color: #555;
-      font-size: clamp(7px, 1.5vw, 10px);
-      letter-spacing: 1px;
-      text-transform: uppercase;
-    }
-
-    .stat-value {
-      color: #fff;
-      font-size: clamp(14px, 3.5vw, 22px);
-      font-weight: bold;
-    }
-
-    .stat-value.high { color: #ffd700; }
-    .stat-value.ai-score { color: #ff6b9d; }
-
-    .canvas-wrap {
-      flex: 1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
-      position: relative;
-    }
-
-    canvas {
-      display: block;
-      touch-action: none;
-    }
-
-    .controls {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 6px 16px;
-      background: #111118;
-      border-top: 1px solid #1a1a2e;
-      flex-shrink: 0;
-    }
-
-    button {
-      background: transparent;
-      border: 1px solid #00ffaa;
-      color: #00ffaa;
-      padding: 6px 16px;
-      font-family: 'Courier New', monospace;
-      font-size: clamp(10px, 2.5vw, 13px);
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      cursor: pointer;
-      border-radius: 4px;
-      transition: all 0.2s;
-    }
-
-    button:hover {
-      background: rgba(0, 255, 170, 0.1);
-      box-shadow: 0 0 20px rgba(0, 255, 170, 0.2);
-    }
-
-    .direction-hint {
-      color: #444;
-      font-size: clamp(8px, 2vw, 11px);
-      letter-spacing: 1px;
-      transition: color 0.3s;
-    }
-
-    .overlay {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      background: rgba(10, 10, 15, 0.88);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s;
-      z-index: 10;
-    }
-
-    .overlay.active {
-      opacity: 1;
-      pointer-events: all;
-    }
-
-    .overlay h2 {
-      color: #ff4757;
-      font-size: clamp(28px, 10vw, 48px);
-      letter-spacing: 4px;
-      text-transform: uppercase;
-      text-shadow: 0 0 30px rgba(255, 71, 87, 0.3);
-      margin-bottom: 4px;
-    }
-
-    .overlay .winner {
-      color: #00ffaa;
-    }
-
-    .overlay .sub {
-      color: #888;
-      font-size: clamp(12px, 3vw, 16px);
-      margin-bottom: 16px;
-      text-align: center;
-      padding: 0 20px;
-    }
-
-    .overlay .final-score {
-      color: #fff;
-      font-size: clamp(36px, 14vw, 60px);
-      font-weight: bold;
-      margin-bottom: 2px;
-    }
-
-    .overlay .final-label {
-      color: #555;
-      font-size: clamp(10px, 2.5vw, 12px);
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      margin-bottom: 16px;
-    }
-
-    .overlay button {
-      border-color: #ff4757;
-      color: #ff4757;
-    }
-
-    .overlay button:hover {
-      background: rgba(255, 71, 87, 0.1);
-    }
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0f;display:flex;justify-content:center;align-items:center;min-height:100vh;min-height:100dvh;font-family:'Courier New',monospace;overflow:hidden;touch-action:none}
+.game-wrapper{position:relative;width:100vw;height:100vh;height:100dvh;background:#0d0d18;display:flex;flex-direction:column}
+.header{display:flex;justify-content:space-between;align-items:center;padding:8px 16px;background:#111118;border-bottom:1px solid #1a1a2e;flex-shrink:0}
+h1{color:#00ffaa;font-size:clamp(12px,3vw,22px);font-weight:400;letter-spacing:0.3em;text-transform:uppercase;text-shadow:0 0 20px rgba(0,255,170,0.3);white-space:nowrap}
+h1 .ver{font-size:0.35em;color:#555;letter-spacing:1px;font-weight:300}
+.stats{display:flex;gap:12px;align-items:center}
+.stat{text-align:center;min-width:45px}
+.stat-label{color:#555;font-size:clamp(7px,1.5vw,10px);letter-spacing:1px;text-transform:uppercase}
+.stat-value{color:#fff;font-size:clamp(14px,3.5vw,22px);font-weight:bold}
+.stat-value.high{color:#ffd700}
+.stat-value.ai-score{color:#ff6b9d}
+.canvas-wrap{flex:1;display:flex;justify-content:center;align-items:center;overflow:hidden;position:relative}
+canvas{display:block;touch-action:none}
+.controls{display:flex;justify-content:space-between;align-items:center;padding:6px 16px;background:#111118;border-top:1px solid #1a1a2e;flex-shrink:0;gap:8px;flex-wrap:wrap}
+button{background:transparent;border:1px solid #00ffaa;color:#00ffaa;padding:6px 16px;font-family:'Courier New',monospace;font-size:clamp(10px,2.5vw,13px);letter-spacing:1px;text-transform:uppercase;cursor:pointer;border-radius:4px;transition:all 0.2s}
+button:hover{background:rgba(0,255,170,0.1);box-shadow:0 0 20px rgba(0,255,170,0.2)}
+.direction-hint{color:#444;font-size:clamp(8px,2vw,11px);letter-spacing:1px;transition:color 0.3s}
+.overlay, .setup-screen{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;background:rgba(10,10,15,0.92);z-index:10;opacity:0;pointer-events:none;transition:opacity 0.3s}
+.overlay.active,.setup-screen.active{opacity:1;pointer-events:all}
+.setup-screen.active{z-index:20}
+.overlay h2{color:#ff4757;font-size:clamp(28px,10vw,48px);letter-spacing:4px;text-transform:uppercase;text-shadow:0 0 30px rgba(255,71,87,0.3);margin-bottom:4px}
+.overlay .winner{color:#00ffaa}
+.overlay .sub{color:#888;font-size:clamp(12px,3vw,16px);margin-bottom:16px;text-align:center;padding:0 20px}
+.overlay .final-score{color:#fff;font-size:clamp(36px,14vw,60px);font-weight:bold;margin-bottom:2px}
+.overlay .final-label{color:#555;font-size:clamp(10px,2.5vw,12px);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px}
+.overlay button{border-color:#ff4757;color:#ff4757}
+.overlay button:hover{background:rgba(255,71,87,0.1)}
+.setup-box{background:#151520;border:1px solid #1a1a2e;border-radius:16px;padding:clamp(20px,5vw,40px);max-width:400px;width:90%;text-align:center}
+.setup-box h1{font-size:clamp(20px,5vw,32px);margin-bottom:4px}
+.setup-box .subtitle{color:#555;font-size:clamp(10px,2.5vw,13px);margin-bottom:24px;letter-spacing:1px}
+.setup-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;gap:10px}
+.setup-row label{color:#aaa;font-size:clamp(12px,2.5vw,14px);letter-spacing:1px;text-align:left}
+.setup-row .val{color:#00ffaa;font-size:clamp(18px,4vw,24px);font-weight:bold;min-width:30px;text-align:center}
+.setup-row .btn-group{display:flex;align-items:center;gap:8px}
+.setup-row button.sbtn{width:32px;height:32px;padding:0;font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;border-radius:50%}
+.slider-wrap{flex:1;display:flex;align-items:center;gap:10px}
+input[type=range]{-webkit-appearance:none;flex:1;height:4px;background:#333;border-radius:2px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#00ffaa;cursor:pointer;box-shadow:0 0 10px rgba(0,255,170,0.4)}
+.setup-start{margin-top:16px;padding:12px 40px;font-size:clamp(14px,3vw,18px);border-color:#00ffaa;color:#00ffaa}
+.setup-start:hover{background:rgba(0,255,170,0.15);box-shadow:0 0 30px rgba(0,255,170,0.3)}
   </style>
 </head>
 <body>
-
 <div class="game-wrapper">
   <div class="header">
-    <h1>~ slithergrid ~ <span style="font-size:0.35em;color:#555;letter-spacing:1px;font-weight:300;">v2.0.0</span></h1>
+    <h1>~ slithergrid ~ <span class="ver">v2.1.0</span></h1>
     <div class="stats">
-      <div class="stat">
-        <div class="stat-label">You</div>
-        <div class="stat-value" id="score">0</div>
-      </div>
-      <div class="stat">
-        <div class="stat-label">AI</div>
-        <div class="stat-value ai-score" id="aiScore">0</div>
-      </div>
-      <div class="stat">
-        <div class="stat-label">Best</div>
-        <div class="stat-value high" id="highscore">0</div>
-      </div>
+      <div class="stat"><div class="stat-label">You</div><div class="stat-value" id="score">0</div></div>
+      <div class="stat" id="aiStatContainer"></div>
+      <div class="stat"><div class="stat-label">Best</div><div class="stat-value high" id="highscore">0</div></div>
     </div>
   </div>
-
   <div class="canvas-wrap">
     <canvas id="game"></canvas>
     <div class="overlay" id="overlay">
       <h2 id="overlayTitle">💀 Game Over</h2>
       <div class="final-score" id="finalScore">0</div>
-      <div class="final-label" id="finalLabel">points</div>
-      <div class="sub" id="finalMsg">You collided with yourself</div>
-      <button onclick="resetGame()">↻ Play Again</button>
+      <div class="final-label">points</div>
+      <div class="sub" id="finalMsg"></div>
+      <button onclick="showSetup()">↻ Play Again</button>
+    </div>
+    <div class="setup-screen active" id="setupScreen">
+      <div class="setup-box">
+        <h1>~ slithergrid ~</h1>
+        <div class="subtitle">Configure your match</div>
+        <div class="setup-row">
+          <label>AI Opponents</label>
+          <div class="btn-group">
+            <button class="sbtn" onclick="adjOpps(-1)">−</button>
+            <span class="val" id="oppsVal">2</span>
+            <button class="sbtn" onclick="adjOpps(1)">+</button>
+          </div>
+        </div>
+        <div class="setup-row">
+          <label>Speed</label>
+          <div class="slider-wrap">
+            <span style="color:#555;font-size:11px">Slow</span>
+            <input type="range" id="speedSlider" min="0" max="10" value="4" oninput="updateSpeedLabel()">
+            <span style="color:#555;font-size:11px">Fast</span>
+          </div>
+        </div>
+        <div class="setup-row">
+          <label></label>
+          <span class="val" id="speedLabel">4</span>
+        </div>
+        <button class="setup-start" onclick="startGame()">▶ Start</button>
+      </div>
     </div>
   </div>
-
   <div class="controls">
     <span class="direction-hint" id="hint">W A S D · Arrows · Swipe</span>
-    <button onclick="resetGame()">↻ New Game</button>
+    <button onclick="showSetup()">↻ New Game</button>
   </div>
 </div>
 
 <script>
-  const canvas = document.getElementById('game');
-  const ctx = canvas.getContext('2d');
-  const scoreEl = document.getElementById('score');
-  const aiScoreEl = document.getElementById('aiScore');
-  const highEl = document.getElementById('highscore');
-  const overlay = document.getElementById('overlay');
-  const overlayTitle = document.getElementById('overlayTitle');
-  const finalScore = document.getElementById('finalScore');
-  const finalLabel = document.getElementById('finalLabel');
-  const finalMsg = document.getElementById('finalMsg');
-  const hintEl = document.getElementById('hint');
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
+const scoreEl=document.getElementById('score'),highEl=document.getElementById('highscore');
+const aiStatContainer=document.getElementById('aiStatContainer');
+const overlay=document.getElementById('overlay'),setupScreen=document.getElementById('setupScreen');
+const overlayTitle=document.getElementById('overlayTitle'),finalScore=document.getElementById('finalScore');
+const finalMsg=document.getElementById('finalMsg'),hintEl=document.getElementById('hint');
 
-  const GRID = 15;
-  const TICK = 130;
-  const BOOST_DURATION = 100; // ticks at 130ms ≈ 13 seconds
-  const BOOST_TICK = 70;
-  const POWERUP_INTERVAL = 90; // ticks ≈ 12 seconds
+const GRID=15; let COLS,ROWS,CELL;
+const RAINBOW=()=>`hsl(${(Date.now()/20+Math.random()*360)%360},100%,60%)`;
+const RAINBOW_COLORS=['#ff0000','#ff8800','#ffff00','#00ff00','#0088ff','#8800ff','#ff00ff'];
 
-  let COLS, ROWS, CELL;
+let aiCount=2,speedVal=4;
+let snakes=[],ais=[],food,bombs,particles=[],gameTick=0,gameLoop,running=false;
+let powerUps={rainbow:null,yellow:null};
+let playerBoost=0,aiBoosts=[];
+let powerUpTimers={rainbow:0,yellow:0};
+const BOOST_DURATION=100,BOOST_TICK=70;
 
-  let snake, aiSnake, food, bombs, direction, nextDirection;
-  let aiDirection, aiNextDirection;
-  let score, aiScore, highscore, gameLoop, running;
-  let particles = [];
-  let gameTick = 0;
+const AI_NAMES=['Neon','Viper','Cobra','Fang','Byte','Pixel','Glitch','Spark'];
 
-  let powerUp = null;
-  let playerBoost = 0;
-  let aiBoost = 0;
-  let powerUpTimer = 0;
+function getBaseTick(s){return 200-s*11} // s=0→200ms, s=4→156ms, s=10→90ms
+let TICK,BASE_TICK;
 
-  function calcGrid() {
-    const parent = canvas.parentElement;
-    const w = parent.clientWidth;
-    const h = parent.clientHeight;
-    if (!w || !h) return;
-    const cellSize = Math.max(10, Math.floor(Math.min(w, h) / GRID));
-    COLS = Math.floor(w / cellSize);
-    ROWS = Math.floor(h / cellSize);
-    CELL = Math.min(w / COLS, h / ROWS);
-    canvas.width = Math.round(COLS * CELL);
-    canvas.height = Math.round(ROWS * CELL);
+function calcGrid(){
+  const p=canvas.parentElement,w=p.clientWidth,h=p.clientHeight;
+  if(!w||!h)return;
+  const cs=Math.max(10,Math.floor(Math.min(w,h)/GRID));
+  COLS=Math.floor(w/cs);ROWS=Math.floor(h/cs);
+  CELL=Math.min(w/COLS,h/ROWS);
+  canvas.width=Math.round(COLS*CELL);canvas.height=Math.round(ROWS*CELL);
+}
+
+function posFree(x,y,skipIdx){
+  for(let i=0;i<snakes.length;i++){
+    if(i===skipIdx)continue;
+    if(snakes[i].some(s=>s.x===x&&s.y===y))return false;
+  }
+  if(food&&food.x===x&&food.y===y)return false;
+  if(bombs.some(b=>b.x===x&&b.y===y))return false;
+  for(const k in powerUps)if(powerUps[k]&&powerUps[k].x===x&&powerUps[k].y===y)return false;
+  return true;
+}
+
+function randPos(skipIdx){
+  let p,a=0;
+  do{p={x:Math.floor(Math.random()*COLS),y:Math.floor(Math.random()*ROWS)};a++}
+  while(!posFree(p.x,p.y,skipIdx)&&a<500);
+  return p;
+}
+
+function spawnFood(){food=randPos(-1)}
+function spawnBomb(){if(bombs.length>=2)return;const b=randPos(-1);if(b)bombs.push({...b,timer:0})}
+function spawnPU(type){
+  if(powerUps[type])return;
+  const p=randPos(-1);
+  if(p)powerUps[type]={x:p.x,y:p.y};
+}
+
+function init(){
+  calcGrid();BASE_TICK=getBaseTick(speedVal);TICK=BASE_TICK;
+  snakes=[];ais=[];bombs=[];particles=[];gameTick=0;
+  powerUps={rainbow:null,yellow:null};playerBoost=0;aiBoosts=[];
+  powerUpTimers={rainbow:0,yellow:0};
+  const hs=parseInt(localStorage.getItem('slithergrid_high')||'0');
+  highEl.textContent=hs;
+
+  // Player top-left
+  snakes.push([{x:3,y:3},{x:2,y:3},{x:1,y:3}]);
+
+  // AI opponents on alternating corners
+  const corners=[
+    ()=>[{x:COLS-4,y:ROWS-4},{x:COLS-3,y:ROWS-4},{x:COLS-2,y:ROWS-4}],
+    ()=>[{x:3,y:ROWS-4},{x:2,y:ROWS-4},{x:1,y:ROWS-4}],
+    ()=>[{x:COLS-4,y:3},{x:COLS-3,y:3},{x:COLS-2,y:3}],
+    ()=>[{x:Math.floor(COLS/2),y:ROWS-4},{x:Math.floor(COLS/2),y:ROWS-3},{x:Math.floor(COLS/2),y:ROWS-2}],
+    ()=>[{x:COLS-4,y:Math.floor(ROWS/2)},{x:COLS-3,y:Math.floor(ROWS/2)},{x:COLS-2,y:Math.floor(ROWS/2)}],
+    ()=>[{x:3,y:Math.floor(ROWS/2)},{x:2,y:Math.floor(ROWS/2)},{x:1,y:Math.floor(ROWS/2)}],
+    ()=>[{x:Math.floor(COLS/2),y:3},{x:Math.floor(COLS/2),y:2},{x:Math.floor(COLS/2),y:1}],
+    ()=>[{x:Math.floor(COLS/2),y:ROWS-4},{x:Math.floor(COLS/2),y:ROWS-3},{x:Math.floor(COLS/2),y:ROWS-2}],
+  ];
+  for(let i=0;i<aiCount;i++){
+    const fn=corners[i%corners.length];
+    if(i>0)while(true){
+      const test=fn();const ok=test.every(t=>posFree(t.x,t.y,-1));
+      if(ok)break;const idx=Math.floor(Math.random()*corners.length);
+    }
+    snakes.push(fn());
+    const dirs=[{x:-1,y:0},{x:1,y:0},{x:-1,y:0},{x:1,y:0},{x:0,y:-1},{x:0,y:1},{x:0,y:-1},{x:0,y:1}];
+    const d=dirs[i%dirs.length];
+    ais.push({dir:d,nextDir:d,boost:0,name:AI_NAMES[i%AI_NAMES.length],score:0});
+    aiBoosts.push(0);
+  }
+  spawnFood();
+  buildAIStats();
+}
+
+function buildAIStats(){
+  aiStatContainer.innerHTML='';
+  for(let i=0;i<aiCount;i++){
+    const d=document.createElement('div');d.className='stat';
+    d.innerHTML=`<div class="stat-label">${ais[i]?.name||'AI'+(i+1)}</div>
+      <div class="stat-value ai-score" id="aiScore${i}" style="font-size:clamp(10px,2.5vw,16px)">0</div>`;
+    aiStatContainer.appendChild(d);
+  }
+}
+
+function getColor(i,len,isAi,idx){
+  if(len===0)return isAi?'#ff6b9d':'#00ffaa';
+  const t=i/len;
+  if(isAi)return `rgb(${Math.floor(255-t*100)},${Math.floor(107-t*40)},${Math.floor(157-t*50)})`;
+  return `rgb(0,${Math.floor(200+t*55)},${Math.floor(100+t*155)})`;
+}
+
+function drawSnake(snakeData,dir,isAi,idx){
+  const len=snakeData.length;const col=isAi?'#ff6b9d':'#00ffaa';
+  const glowCol=isAi?'rgba(255,107,157,0.1)':'rgba(0,255,170,0.1)';
+  for(let i=len-1;i>=0;i--){
+    const s=snakeData[i],isH=i===0,pad=isH?1:2,sz=CELL-pad*2;
+    if(isH){
+      const hx=s.x*CELL+CELL/2,hy=s.y*CELL+CELL/2;
+      const hg=ctx.createRadialGradient(hx,hy,0,hx,hy,CELL);
+      hg.addColorStop(0,glowCol);hg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=hg;ctx.fillRect(s.x*CELL-CELL/2,s.y*CELL-CELL/2,CELL*2,CELL*2);
+    }
+    const color=getColor(i,len,isAi,idx);
+    ctx.fillStyle=color;ctx.shadowColor=isH?col:color;ctx.shadowBlur=isH?14:7;
+    const cx=s.x*CELL+pad,cy=s.y*CELL+pad;
+    if(isH){ctx.beginPath();ctx.roundRect(cx,cy,sz,sz,4);ctx.fill()}
+    else ctx.fillRect(cx,cy,sz,sz);
+    if(isH){
+      ctx.shadowBlur=0;ctx.fillStyle='#fff';const es=Math.max(2,CELL*0.12);
+      const d=dir;let ex1,ey1,ex2,ey2;
+      if(d.x===1){ex1=s.x*CELL+CELL*0.68;ey1=s.y*CELL+CELL*0.28;ex2=s.x*CELL+CELL*0.68;ey2=s.y*CELL+CELL*0.72}
+      else if(d.x===-1){ex1=s.x*CELL+CELL*0.32;ey1=s.y*CELL+CELL*0.28;ex2=s.x*CELL+CELL*0.32;ey2=s.y*CELL+CELL*0.72}
+      else if(d.y===-1){ex1=s.x*CELL+CELL*0.28;ey1=s.y*CELL+CELL*0.32;ex2=s.x*CELL+CELL*0.72;ey2=s.y*CELL+CELL*0.32}
+      else{ex1=s.x*CELL+CELL*0.28;ey1=s.y*CELL+CELL*0.68;ex2=s.x*CELL+CELL*0.72;ey2=s.y*CELL+CELL*0.68}
+      ctx.beginPath();ctx.arc(ex1,ey1,es,0,Math.PI*2);ctx.arc(ex2,ey2,es,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#0a0a0f';
+      ctx.beginPath();ctx.arc(ex1+d.x,ey1+d.y,es*0.5,0,Math.PI*2);ctx.arc(ex2+d.x,ey2+d.y,es*0.5,0,Math.PI*2);ctx.fill();
+    }
+  }ctx.shadowBlur=0;
+}
+
+function drawPU(type,color,x,y,label){
+  const px=x*CELL+CELL/2,py=y*CELL+CELL/2;
+  const pp=1+Math.sin(gameTick*0.15)*0.1;
+  let c=color;
+  if(type==='rainbow')c=`hsl(${(gameTick*3+Date.now()/50)%360},100%,60%)`;
+  const g=ctx.createRadialGradient(px,py,0,px,py,CELL*1.4);
+  g.addColorStop(0,c.replace(')',',0.35)').replace('rgb','rgba').replace('hsl','hsla'));
+  g.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=g;ctx.fillRect(x*CELL-CELL,y*CELL-CELL,CELL*3,CELL*3);
+  ctx.fillStyle=c;ctx.shadowColor=c;ctx.shadowBlur=20;
+  ctx.beginPath();ctx.arc(px,py,CELL*0.4*pp,0,Math.PI*2);ctx.fill();
+  ctx.shadowBlur=0;ctx.fillStyle='#fff';
+  ctx.font=`bold ${CELL*0.45}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(label,px,py+1);ctx.shadowBlur=0;
+}
+
+function draw(){
+  ctx.fillStyle='#0d0d18';ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.strokeStyle='rgba(255,255,255,0.02)';ctx.lineWidth=0.5;
+  for(let i=1;i<COLS;i++){ctx.beginPath();ctx.moveTo(i*CELL,0);ctx.lineTo(i*CELL,canvas.height);ctx.stroke()}
+  for(let i=1;i<ROWS;i++){ctx.beginPath();ctx.moveTo(0,i*CELL);ctx.lineTo(canvas.width,i*CELL);ctx.stroke()}
+
+  // Bombs
+  for(const b of bombs){
+    const bx=b.x*CELL+CELL/2,by=b.y*CELL+CELL/2,pp=1+Math.sin(gameTick*0.08)*0.12;
+    const g=ctx.createRadialGradient(bx,by,0,bx,by,CELL*1.3);
+    g.addColorStop(0,'rgba(255,50,50,0.35)');g.addColorStop(1,'rgba(255,50,50,0)');
+    ctx.fillStyle=g;ctx.fillRect(b.x*CELL-CELL,b.y*CELL-CELL,CELL*3,CELL*3);
+    ctx.fillStyle='#ff3344';ctx.shadowColor='#ff3344';ctx.shadowBlur=16;
+    ctx.beginPath();ctx.arc(bx,by,CELL*0.38*pp,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;ctx.fillStyle='#1a0a0a';
+    ctx.beginPath();ctx.arc(bx,by-2,CELL*0.15,0,Math.PI*2);ctx.fill();
+    ctx.fillRect(bx-CELL*0.1,by+1,CELL*0.2,CELL*0.1);
+    ctx.fillStyle='#ff3344';
+    ctx.beginPath();ctx.arc(bx-CELL*0.08,by-3,CELL*0.04,0,Math.PI*2);
+    ctx.arc(bx+CELL*0.08,by-3,CELL*0.04,0,Math.PI*2);ctx.fill();
+  }ctx.shadowBlur=0;
+
+  // Food (green)
+  if(food){
+    const fx=food.x*CELL+CELL/2,fy=food.y*CELL+CELL/2,pp=1+Math.sin(gameTick*0.1)*0.08;
+    const g=ctx.createRadialGradient(fx,fy,0,fx,fy,CELL*1.3);
+    g.addColorStop(0,'rgba(0,255,170,0.3)');g.addColorStop(1,'rgba(0,255,170,0)');
+    ctx.fillStyle=g;ctx.fillRect(food.x*CELL-CELL,food.y*CELL-CELL,CELL*3,CELL*3);
+    ctx.fillStyle='#00ffaa';ctx.shadowColor='#00ffaa';ctx.shadowBlur=18;
+    ctx.beginPath();ctx.arc(fx,fy,CELL*0.35*pp,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
   }
 
-  function init() {
-    calcGrid();
-    // Player starts top-left, facing right
-    snake = [{x: 3, y: 3}, {x: 2, y: 3}, {x: 1, y: 3}];
-    direction = {x: 1, y: 0};
-    nextDirection = {x: 1, y: 0};
+  // Power-ups
+  if(powerUps.rainbow)drawPU('rainbow','#ffd700',powerUps.rainbow.x,powerUps.rainbow.y,'⚡');
+  if(powerUps.yellow)drawPU('yellow','#ffd700',powerUps.yellow.x,powerUps.yellow.y,'🐍');
 
-    // AI starts bottom-right, facing left
-    aiSnake = [{x: COLS - 4, y: ROWS - 4}, {x: COLS - 3, y: ROWS - 4}, {x: COLS - 2, y: ROWS - 4}];
-    aiDirection = {x: -1, y: 0};
-    aiNextDirection = {x: -1, y: 0};
-
-    score = 0; aiScore = 0;
-    particles = [];
-    bombs = [];
-    gameTick = 0;
-    powerUp = null;
-    playerBoost = 0;
-    aiBoost = 0;
-    powerUpTimer = 0;
-    highscore = parseInt(localStorage.getItem('slithergrid_high') || '0');
-    highEl.textContent = highscore;
-    spawnFood();
-  }
-
-  function spawnFood() {
-    let pos;
-    let attempts = 0;
-    do {
-      pos = {x: Math.floor(Math.random() * COLS), y: Math.floor(Math.random() * ROWS)};
-      attempts++;
-    } while (
-      (snake.some(s => s.x === pos.x && s.y === pos.y) ||
-       aiSnake.some(s => s.x === pos.x && s.y === pos.y) ||
-       (food && food.x === pos.x && food.y === pos.y) ||
-       bombs.some(b => b.x === pos.x && b.y === pos.y) ||
-       (powerUp && powerUp.x === pos.x && powerUp.y === pos.y)) &&
-      attempts < 500
-    );
-    food = pos;
-  }
-
-  function spawnBomb() {
-    if (bombs.length >= 2) return;
-    let pos;
-    let attempts = 0;
-    do {
-      pos = {x: Math.floor(Math.random() * COLS), y: Math.floor(Math.random() * ROWS)};
-      attempts++;
-    } while (
-      (snake.some(s => s.x === pos.x && s.y === pos.y) ||
-       aiSnake.some(s => s.x === pos.x && s.y === pos.y) ||
-       (food && food.x === pos.x && food.y === pos.y) ||
-       bombs.some(b => b.x === pos.x && b.y === pos.y) ||
-       (powerUp && powerUp.x === pos.x && powerUp.y === pos.y)) &&
-      attempts < 200
-    );
-    if (attempts < 200) {
-      bombs.push({x: pos.x, y: pos.y, timer: 0});
-    }
-  }
-
-  function spawnPowerUp() {
-    if (powerUp) return;
-    let pos;
-    let attempts = 0;
-    do {
-      pos = {x: Math.floor(Math.random() * COLS), y: Math.floor(Math.random() * ROWS)};
-      attempts++;
-    } while (
-      (snake.some(s => s.x === pos.x && s.y === pos.y) ||
-       aiSnake.some(s => s.x === pos.x && s.y === pos.y) ||
-       (food && food.x === pos.x && food.y === pos.y) ||
-       bombs.some(b => b.x === pos.x && b.y === pos.y)) &&
-      attempts < 200
-    );
-    if (attempts < 200) {
-      powerUp = {x: pos.x, y: pos.y};
-    }
-  }
-
-  const PLAYER_COLORS = {
-    head: '#00ffaa',
-    tail: (i, len) => {
-      const t = len > 0 ? i / len : 0;
-      return `rgb(0,${Math.floor(200 + t * 55)},${Math.floor(100 + t * 155)})`;
-    }
-  };
-
-  const AI_COLORS = {
-    head: '#ff6b9d',
-    tail: (i, len) => {
-      const t = len > 0 ? i / len : 0;
-      return `rgb(${Math.floor(255 - t * 100)},${Math.floor(107 - t * 40)},${Math.floor(157 - t * 50)})`;
-    }
-  };
-
-  function drawSnake(snakeData, dir, colors, isPlayer) {
-    const len = snakeData.length;
-    for (let i = len - 1; i >= 0; i--) {
-      const s = snakeData[i];
-      const isHead = i === 0;
-      const pad = isHead ? 1 : 2;
-      const size = CELL - pad * 2;
-
-      if (isHead) {
-        const hx = s.x * CELL + CELL/2;
-        const hy = s.y * CELL + CELL/2;
-        const hg = ctx.createRadialGradient(hx, hy, 0, hx, hy, CELL);
-        hg.addColorStop(0, isPlayer ? 'rgba(0, 255, 170, 0.1)' : 'rgba(255, 107, 157, 0.1)');
-        hg.addColorStop(1, 'rgba(0, 0, 0, 0)');
-        ctx.fillStyle = hg;
-        ctx.fillRect(s.x * CELL - CELL/2, s.y * CELL - CELL/2, CELL * 2, CELL * 2);
-      }
-
-      const color = isHead ? colors.head : colors.tail(i, len);
-      ctx.fillStyle = color;
-      ctx.shadowColor = isHead ? colors.head : color;
-      ctx.shadowBlur = isHead ? 14 : 7;
-
-      const cx = s.x * CELL + pad;
-      const cy = s.y * CELL + pad;
-
-      if (isHead) {
-        ctx.beginPath();
-        ctx.roundRect(cx, cy, size, size, 4);
-        ctx.fill();
-      } else {
-        ctx.fillRect(cx, cy, size, size);
-      }
-
-      if (isHead) {
-        ctx.shadowBlur = 0;
-        ctx.fillStyle = '#fff';
-        const es = Math.max(2, CELL * 0.12);
-        const d = dir;
-        let ex1, ey1, ex2, ey2;
-        if (d.x === 1) {
-          ex1 = s.x * CELL + CELL * 0.68; ey1 = s.y * CELL + CELL * 0.28;
-          ex2 = s.x * CELL + CELL * 0.68; ey2 = s.y * CELL + CELL * 0.72;
-        } else if (d.x === -1) {
-          ex1 = s.x * CELL + CELL * 0.32; ey1 = s.y * CELL + CELL * 0.28;
-          ex2 = s.x * CELL + CELL * 0.32; ey2 = s.y * CELL + CELL * 0.72;
-        } else if (d.y === -1) {
-          ex1 = s.x * CELL + CELL * 0.28; ey1 = s.y * CELL + CELL * 0.32;
-          ex2 = s.x * CELL + CELL * 0.72; ey2 = s.y * CELL + CELL * 0.32;
-        } else {
-          ex1 = s.x * CELL + CELL * 0.28; ey1 = s.y * CELL + CELL * 0.68;
-          ex2 = s.x * CELL + CELL * 0.72; ey2 = s.y * CELL + CELL * 0.68;
-        }
-        ctx.beginPath();
-        ctx.arc(ex1, ey1, es, 0, Math.PI * 2);
-        ctx.arc(ex2, ey2, es, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#0a0a0f';
-        ctx.beginPath();
-        ctx.arc(ex1 + d.x, ey1 + d.y, es * 0.5, 0, Math.PI * 2);
-        ctx.arc(ex2 + d.x, ey2 + d.y, es * 0.5, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-    ctx.shadowBlur = 0;
-  }
-
-  function draw() {
-    ctx.fillStyle = '#0d0d18';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Grid
-    ctx.strokeStyle = 'rgba(255,255,255,0.02)';
-    ctx.lineWidth = 0.5;
-    for (let i = 1; i < COLS; i++) {
-      ctx.beginPath();
-      ctx.moveTo(i * CELL, 0);
-      ctx.lineTo(i * CELL, canvas.height);
-      ctx.stroke();
-    }
-    for (let i = 1; i < ROWS; i++) {
-      ctx.beginPath();
-      ctx.moveTo(0, i * CELL);
-      ctx.lineTo(canvas.width, i * CELL);
-      ctx.stroke();
-    }
-
-    // Bombs (red, look like food used to)
-    for (const bomb of bombs) {
-      const bx = bomb.x * CELL + CELL/2;
-      const by = bomb.y * CELL + CELL/2;
-      const pulse = 1 + Math.sin(gameTick * 0.08) * 0.12;
-
-      const grad = ctx.createRadialGradient(bx, by, 0, bx, by, CELL * 1.3);
-      grad.addColorStop(0, 'rgba(255, 50, 50, 0.35)');
-      grad.addColorStop(1, 'rgba(255, 50, 50, 0)');
-      ctx.fillStyle = grad;
-      ctx.fillRect(bomb.x * CELL - CELL, bomb.y * CELL - CELL, CELL * 3, CELL * 3);
-
-      ctx.fillStyle = '#ff3344';
-      ctx.shadowColor = '#ff3344';
-      ctx.shadowBlur = 16;
-      ctx.beginPath();
-      ctx.arc(bx, by, CELL * 0.38 * pulse, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Skull
-      ctx.shadowBlur = 0;
-      ctx.fillStyle = '#1a0a0a';
-      ctx.beginPath();
-      ctx.arc(bx, by - 2, CELL * 0.15, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillRect(bx - CELL * 0.1, by + 1, CELL * 0.2, CELL * 0.1);
-      ctx.fillStyle = '#ff3344';
-      ctx.beginPath();
-      ctx.arc(bx - CELL * 0.08, by - 3, CELL * 0.04, 0, Math.PI * 2);
-      ctx.arc(bx + CELL * 0.08, by - 3, CELL * 0.04, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.shadowBlur = 0;
-
-    // Food (green, snake-colored)
-    if (food) {
-      const fx = food.x * CELL + CELL/2;
-      const fy = food.y * CELL + CELL/2;
-      const pulse = 1 + Math.sin(gameTick * 0.1) * 0.08;
-
-      const fgrad = ctx.createRadialGradient(fx, fy, 0, fx, fy, CELL * 1.3);
-      fgrad.addColorStop(0, 'rgba(0, 255, 170, 0.3)');
-      fgrad.addColorStop(1, 'rgba(0, 255, 170, 0)');
-      ctx.fillStyle = fgrad;
-      ctx.fillRect(food.x * CELL - CELL, food.y * CELL - CELL, CELL * 3, CELL * 3);
-
-      ctx.fillStyle = '#00ffaa';
-      ctx.shadowColor = '#00ffaa';
-      ctx.shadowBlur = 18;
-      ctx.beginPath();
-      ctx.arc(fx, fy, CELL * 0.35 * pulse, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.shadowBlur = 0;
-    }
-
-    // Power-up (yellow, same style as food)
-    if (powerUp) {
-      const px = powerUp.x * CELL + CELL/2;
-      const py = powerUp.y * CELL + CELL/2;
-      const ppulse = 1 + Math.sin(gameTick * 0.15) * 0.1;
-      const pgrad = ctx.createRadialGradient(px, py, 0, px, py, CELL * 1.4);
-      pgrad.addColorStop(0, 'rgba(255, 215, 0, 0.35)');
-      pgrad.addColorStop(1, 'rgba(255, 215, 0, 0)');
-      ctx.fillStyle = pgrad;
-      ctx.fillRect(powerUp.x * CELL - CELL, powerUp.y * CELL - CELL, CELL * 3, CELL * 3);
-      ctx.fillStyle = '#ffd700';
-      ctx.shadowColor = '#ffd700';
-      ctx.shadowBlur = 20;
-      ctx.beginPath();
-      ctx.arc(px, py, CELL * 0.4 * ppulse, 0, Math.PI * 2);
-      ctx.fill();
-      // Lightning bolt
-      ctx.shadowBlur = 0;
-      ctx.fillStyle = '#fff';
-      ctx.font = `bold ${CELL * 0.45}px sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('⚡', px, py + 1);
-      ctx.shadowBlur = 0;
-    }
-
-    // Particles
-    ctx.save();
-    particles = particles.filter(p => {
-      p.x += p.vx;
-      p.y += p.vy;
-      p.vy += 0.04;
-      p.life -= 0.025;
-      if (p.life <= 0) return false;
-      ctx.globalAlpha = p.life;
-      ctx.fillStyle = p.color;
-      ctx.shadowColor = p.color;
-      ctx.shadowBlur = 6;
-      ctx.fillRect(p.x, p.y, p.size || 4, p.size || 4);
-      return true;
-    });
-    ctx.restore();
-    ctx.shadowBlur = 0;
-
-    // AI snake (draw first so player is on top)
-    drawSnake(aiSnake, aiDirection, AI_COLORS, false);
-    // Player snake
-    drawSnake(snake, direction, PLAYER_COLORS, true);
-  }
-
-  function spawnParticles(x, y, color, count, big) {
-    const sz = big ? 5 : 3;
-    for (let i = 0; i < count; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const speed = big ? Math.random() * 4 + 1.5 : Math.random() * 2.5 + 0.5;
-      particles.push({
-        x: x * CELL + CELL/2,
-        y: y * CELL + CELL/2,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - (big ? 0.5 : 0),
-        life: 0.7 + Math.random() * 0.4,
-        color: color || `hsl(${Math.random() * 40 + 150}, 100%, 70%)`,
-        size: sz
-      });
-    }
-  }
-
-  function rainbowParticles(segments) {
-    const rainbow = ['#ff0000','#ff8800','#ffff00','#00ff00','#0088ff','#8800ff','#ff00ff'];
-    for (const seg of segments) {
-      for (let i = 0; i < 8; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const speed = Math.random() * 5 + 1;
-        particles.push({
-          x: seg.x * CELL + CELL/2,
-          y: seg.y * CELL + CELL/2,
-          vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed - 1,
-          life: 0.8 + Math.random() * 0.6,
-          color: rainbow[Math.floor(Math.random() * rainbow.length)],
-          size: 4 + Math.random() * 3
-        });
-      }
-    }
-  }
-
-  function moveSnake(snakeData, dir, isPlayer) {
-    const head = {
-      x: snakeData[0].x + dir.x,
-      y: snakeData[0].y + dir.y
-    };
-
-    if (head.x < 0) head.x = COLS - 1;
-    if (head.x >= COLS) head.x = 0;
-    if (head.y < 0) head.y = ROWS - 1;
-    if (head.y >= ROWS) head.y = 0;
-
-    // Self collision
-    if (snakeData.some(s => s.x === head.x && s.y === head.y)) {
-      return { dead: true };
-    }
-
-    // Collision with other snake — during boost, CUT instead of die
-    const other = isPlayer ? aiSnake : snake;
-    const otherHead = other[0];
-    const hitBody = other.findIndex((s, i) => i > 0 && s.x === head.x && s.y === head.y);
-
-    if (hitBody > 0) {
-      if ((isPlayer && playerBoost > 0) || (!isPlayer && aiBoost > 0)) {
-        // Cut the other snake from hit point to tail
-        const cutSegments = other.splice(hitBody);
-        rainbowParticles(cutSegments);
-        // Score bonus
-        if (isPlayer) {
-          score += Math.floor(cutSegments.length / 3) + 1;
-          scoreEl.textContent = score;
-          if (score > highscore) {
-            highscore = score;
-            localStorage.setItem('slithergrid_high', highscore);
-            highEl.textContent = highscore;
-          }
-        } else {
-          aiScore += Math.floor(cutSegments.length / 3) + 1;
-          aiScoreEl.textContent = aiScore;
-        }
-        // If other snake is now too short, it dies
-        if (other.length < 3) {
-          return { dead: true };
-        }
-      } else {
-        // Normal collision — die
-        return { dead: true };
-      }
-    } else if (head.x === otherHead.x && head.y === otherHead.y) {
-      // Head-on collision — both die? Or just this snake dies. Both die is more fun.
-      return { dead: true };
-    }
-
-    // Bomb collision
-    const hitBomb = bombs.find(b => b.x === head.x && b.y === head.y);
-    if (hitBomb) {
-      explodeBomb(hitBomb);
-      spawnParticles(hitBomb.x, hitBomb.y, '#ff3344', 25, true);
-      spawnParticles(hitBomb.x, hitBomb.y, '#ffcc00', 15, true);
-      bombs = bombs.filter(b => b !== hitBomb);
-      const cutLen = Math.max(2, Math.floor(snakeData.length * 0.35));
-      if (snakeData.length - cutLen < 3) {
-        return { dead: true };
-      }
-      snakeData.splice(snakeData.length - cutLen, cutLen);
-    }
-
-    // Power-up collection
-    if (powerUp && head.x === powerUp.x && head.y === powerUp.y) {
-      powerUp = null;
-      if (isPlayer) {
-        playerBoost = BOOST_DURATION;
-      } else {
-        aiBoost = BOOST_DURATION;
-      }
-      spawnParticles(head.x, head.y, '#ffd700', 25, true);
-      // Reschedule hint
-      hintEl.textContent = isPlayer ? '⚡ BOOST ACTIVE! Cut through the AI!' : '';
-      hintEl.style.color = '#ffd700';
-      if (isPlayer) {
-        setTimeout(() => {
-          hintEl.textContent = 'W A S D · Arrows · Swipe';
-          hintEl.style.color = '#444';
-        }, 2000);
-      }
-    }
-
-    snakeData.unshift(head);
-
-    let ate = false;
-    if (head.x === food.x && head.y === food.y) {
-      ate = true;
-      if (isPlayer) {
-        score++;
-        scoreEl.textContent = score;
-        if (score > highscore) {
-          highscore = score;
-          localStorage.setItem('slithergrid_high', highscore);
-          highEl.textContent = highscore;
-        }
-      } else {
-        aiScore++;
-        aiScoreEl.textContent = aiScore;
-      }
-      spawnParticles(food.x, food.y, '#00ffaa', 20);
-      spawnFood();
-    }
-
-    if (!ate && !hitBomb) {
-      snakeData.pop();
-    }
-
-    return { dead: false };
-  }
-
-  function explodeBomb(bomb) {
-    spawnParticles(bomb.x, bomb.y, '#ff3344', 30, true);
-    spawnParticles(bomb.x, bomb.y, '#ffcc00', 20, true);
-  }
-
-  function aiThink() {
-    const head = aiSnake[0];
-
-    // Go for power-up if available and close
-    let targetX = food.x;
-    let targetY = food.y;
-
-    if (powerUp) {
-      const distToPU = Math.abs(head.x - powerUp.x) + Math.abs(head.y - powerUp.y);
-      const distToFood = Math.abs(head.x - food.x) + Math.abs(head.y - food.y);
-      if (distToPU < distToFood + 5) {
-        targetX = powerUp.x;
-        targetY = powerUp.y;
-      }
-    }
-
-    // If AI is boosted, hunt player
-    if (aiBoost > 0) {
-      targetX = snake[0].x;
-      targetY = snake[0].y;
-    }
-
-    // If AI is close to player, try to cut them off
-    const distToPlayer = Math.abs(head.x - snake[0].x) + Math.abs(head.y - snake[0].y);
-    if (distToPlayer < 5 && aiScore > score) {
-      targetX = snake[0].x;
-      targetY = snake[0].y;
-    }
-
-    const candidates = [];
-    const dirs = [
-      {x: 1, y: 0, name: 'right'},
-      {x: -1, y: 0, name: 'left'},
-      {x: 0, y: 1, name: 'down'},
-      {x: 0, y: -1, name: 'up'}
-    ];
-
-    for (const d of dirs) {
-      // Can't reverse
-      if (d.x === -aiDirection.x && d.y === -aiDirection.y) continue;
-
-      const nx = (head.x + d.x + COLS) % COLS;
-      const ny = (head.y + d.y + ROWS) % ROWS;
-
-      // Check self collision
-      if (aiSnake.some(s => s.x === nx && s.y === ny)) continue;
-      // Check player collision
-      if (snake.some(s => s.x === nx && s.y === ny)) continue;
-      // Check bombs
-      if (bombs.some(b => b.x === nx && b.y === ny)) continue;
-
-      const dist = Math.abs(nx - targetX) + Math.abs(ny - targetY);
-      candidates.push({dir: d, dist});
-    }
-
-    if (candidates.length > 0) {
-      candidates.sort((a, b) => a.dist - b.dist);
-      aiNextDirection = candidates[0].dir;
-    }
-    // else keep current direction
-  }
-
-  function update() {
-    gameTick++;
-
-    // Boost timers
-    if (playerBoost > 0) playerBoost--;
-    if (aiBoost > 0) aiBoost--;
-
-    // Player
-    direction = {...nextDirection};
-    const playerResult = moveSnake(snake, direction, true);
-    if (playerResult.dead) {
-      endGame("💀 You Died", score, "The AI got you!");
-      return;
-    }
-
-    // AI
-    aiThink();
-    aiDirection = {...aiNextDirection};
-    const aiResult = moveSnake(aiSnake, aiDirection, false);
-    if (aiResult.dead) {
-      endGame("🏆 You Win!", score, "The AI crashed!");
-      return;
-    }
-
-    // Bomb spawning
-    if (gameTick % 60 === 0) {
-      spawnBomb();
-    }
-
-    // Power-up spawning
-    powerUpTimer++;
-    if (powerUpTimer >= POWERUP_INTERVAL) {
-      spawnPowerUp();
-      powerUpTimer = 0;
-    }
-  }
-
-  function getTickInterval() {
-    const boost = playerBoost > 0 || aiBoost > 0;
-    return boost ? BOOST_TICK : TICK;
-  }
-
-  function endGame(title, finalScoreVal, msg) {
-    running = false;
-    clearInterval(gameLoop);
-    overlayTitle.textContent = title;
-    finalScore.textContent = finalScoreVal;
-    finalLabel.textContent = 'points';
-    finalMsg.textContent = msg;
-    overlay.classList.add('active');
-  }
-
-  function gameTickFn() {
-    if (!running) return;
-    update();
-    draw();
-    // Re-schedule with current tick speed (supports boost)
-    clearInterval(gameLoop);
-    gameLoop = setInterval(gameTickFn, getTickInterval());
-  }
-
-  function resetGame() {
-    overlay.classList.remove('active');
-    if (gameLoop) clearInterval(gameLoop);
-    init();
-    running = true;
-    gameLoop = setInterval(gameTickFn, TICK);
-    draw();
-    hintEl.textContent = 'W A S D · Arrows · Swipe';
-    hintEl.style.color = '#444';
-  }
-
-  // Controls
-  document.addEventListener('keydown', e => {
-    if (!running && e.key !== 'Enter') return;
-    const map = {
-      'ArrowUp': {x: 0, y: -1}, 'ArrowDown': {x: 0, y: 1},
-      'ArrowLeft': {x: -1, y: 0}, 'ArrowRight': {x: 1, y: 0},
-      'w': {x: 0, y: -1}, 's': {x: 0, y: 1},
-      'a': {x: -1, y: 0}, 'd': {x: 1, y: 0},
-      'W': {x: 0, y: -1}, 'S': {x: 0, y: 1},
-      'A': {x: -1, y: 0}, 'D': {x: 1, y: 0}
-    };
-    const nd = map[e.key];
-    if (nd && (nd.x !== -direction.x || nd.y !== -direction.y)) {
-      e.preventDefault();
-      nextDirection = nd;
-    }
-    if (e.key === 'Enter' && !running) resetGame();
-    if (e.key === ' ') { e.preventDefault(); }
+  // Particles
+  ctx.save();
+  particles=particles.filter(p=>{
+    p.x+=p.vx;p.y+=p.vy;p.vy+=0.04;p.life-=0.025;
+    if(p.life<=0)return false;
+    ctx.globalAlpha=p.life;ctx.fillStyle=p.color;ctx.shadowColor=p.color;ctx.shadowBlur=6;
+    ctx.fillRect(p.x,p.y,p.size||4,p.size||4);return true;
   });
+  ctx.restore();ctx.shadowBlur=0;
 
-  // Touch
-  let touchStart = null;
-  canvas.addEventListener('touchstart', e => {
-    e.preventDefault();
-    const t = e.touches[0];
-    touchStart = {x: t.clientX, y: t.clientY};
-  }, {passive: false});
-  canvas.addEventListener('touchmove', e => e.preventDefault(), {passive: false});
-  canvas.addEventListener('touchend', e => {
-    if (!touchStart) return;
-    const t = e.changedTouches[0];
-    const dx = t.clientX - touchStart.x;
-    const dy = t.clientY - touchStart.y;
-    const adx = Math.abs(dx), ady = Math.abs(dy);
-    if (Math.max(adx, ady) < 15) return;
-    if (adx > ady) {
-      const nd = {x: dx > 0 ? 1 : -1, y: 0};
-      if (nd.x !== -direction.x) nextDirection = nd;
-    } else {
-      const nd = {x: 0, y: dy > 0 ? 1 : -1};
-      if (nd.y !== -direction.y) nextDirection = nd;
-    }
-    touchStart = null;
-  });
+  // AI snakes
+  for(let i=0;i<aiCount;i++)drawSnake(snakes[i+1],ais[i].dir,true,i);
+  // Player
+  drawSnake(snakes[0],{x:1,y:0},false,0);
+}
 
-  // Resize
-  function onResize() {
-    calcGrid();
-    if (running) return;
-    draw();
+function spawnParticles(x,y,color,count,big){
+  const sz=big?5:3;
+  for(let i=0;i<count;i++){
+    const a=Math.random()*Math.PI*2,s=big?Math.random()*4+1.5:Math.random()*2.5+0.5;
+    particles.push({x:x*CELL+CELL/2,y:y*CELL+CELL/2,vx:Math.cos(a)*s,vy:Math.sin(a)*s-(big?0.5:0),life:0.7+Math.random()*0.4,color:color||`hsl(${Math.random()*40+150},100%,70%)`,size:sz});
   }
-  window.addEventListener('resize', onResize);
+}
 
-  // Start
-  init();
+function rainbowParticles(segs){
+  for(const seg of segs)for(let i=0;i<8;i++){
+    const a=Math.random()*Math.PI*2,s=Math.random()*5+1;
+    particles.push({x:seg.x*CELL+CELL/2,y:seg.y*CELL+CELL/2,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1,life:0.8+Math.random()*0.6,color:RAINBOW_COLORS[Math.floor(Math.random()*RAINBOW_COLORS.length)],size:4+Math.random()*3});
+  }
+}
+
+function moveSnake(idx,dir){
+  const sd=snakes[idx];const isPlayer=idx===0;
+  const head={x:(sd[0].x+dir.x+COLS)%COLS,y:(sd[0].y+dir.y+ROWS)%ROWS};
+
+  // Self collision
+  if(sd.some(s=>s.x===head.x&&s.y===head.y))return{dead:true};
+
+  // Other snakes collision
+  for(let oi=0;oi<snakes.length;oi++){
+    if(oi===idx)continue;
+    const os=snakes[oi];const oH=os[0];
+    const hitB=os.findIndex((s,i)=>i>0&&s.x===head.x&&s.y===head.y);
+    if(hitB>0){
+    const boost=isPlayer?playerBoost:aiBoosts[idx-1];
+    const oBoost=oi===0?playerBoost:aiBoosts[oi-1];
+    if(boost>0){
+      const cut=os.splice(hitB);rainbowParticles(cut);
+      if(isPlayer){
+        score+=Math.floor(cut.length/3)+1;scoreEl.textContent=score;
+        const hs=parseInt(localStorage.getItem('slithergrid_high')||'0');
+        if(score>hs){localStorage.setItem('slithergrid_high',score);highEl.textContent=score}
+      }else{ais[idx-1].score+=Math.floor(cut.length/3)+1;updateAIStats()}
+      if(os.length<3)return{cutKill:oi};
+    }else{
+      if(oBoost>0&&oi!==0){}
+      return{dead:true};
+    }
+    }
+    if(head.x===oH.x&&head.y===oH.y)return{dead:true};
+  }
+
+  // Bomb
+  const hb=bombs.find(b=>b.x===head.x&&b.y===head.y);
+  if(hb){
+    spawnParticles(hb.x,hb.y,'#ff3344',25,true);spawnParticles(hb.x,hb.y,'#ffcc00',15,true);
+    bombs=bombs.filter(b=>b!==hb);const cl=Math.max(2,Math.floor(sd.length*0.35));
+    if(sd.length-cl<3)return{dead:true};sd.splice(sd.length-cl,cl);
+  }
+
+  // Power-ups
+  if(powerUps.rainbow&&head.x===powerUps.rainbow.x&&head.y===powerUps.rainbow.y){
+    powerUps.rainbow=null;spawnParticles(head.x,head.y,'#ffd700',25,true);
+    if(isPlayer)playerBoost=BOOST_DURATION;else aiBoosts[idx-1]=BOOST_DURATION;
+    hintEl.textContent=isPlayer?'⚡ RAINBOW BOOST! Cut through snakes!':'';
+    hintEl.style.color='#ffd700';
+    if(isPlayer)setTimeout(()=>{hintEl.textContent='W A S D · Arrows · Swipe';hintEl.style.color='#444';},2000);
+  }
+  if(powerUps.yellow&&head.x===powerUps.yellow.x&&head.y===powerUps.yellow.y){
+    powerUps.yellow=null;spawnParticles(head.x,head.y,'#ffd700',25,true);
+    for(let i=0;i<3;i++)sd.push({...sd[sd.length-1]}); // grow by 3
+    hintEl.textContent=isPlayer?'🐍 +3 segments!':'';
+    hintEl.style.color='#ffd700';
+    if(isPlayer)setTimeout(()=>{hintEl.textContent='W A S D · Arrows · Swipe';hintEl.style.color='#444';},2000);
+  }
+
+  sd.unshift(head);
+  if(head.x===food.x&&head.y===food.y){
+    if(isPlayer){score++;scoreEl.textContent=score;
+      const hs=parseInt(localStorage.getItem('slithergrid_high')||'0');
+      if(score>hs){localStorage.setItem('slithergrid_high',score);highEl.textContent=score}}
+    else{ais[idx-1].score++;updateAIStats()}
+    spawnParticles(food.x,food.y,'#00ffaa',20);spawnFood();
+  }else if(!hb)sd.pop();
+  return{dead:false};
+}
+
+function updateAIStats(){
+  for(let i=0;i<aiCount;i++){
+    const el=document.getElementById('aiScore'+i);
+    if(el)el.textContent=ais[i].score;
+  }
+}
+
+function aiThink(i){
+  const head=snakes[i+1][0];const ai=ais[i];
+  let tx=food.x,ty=food.y;
+  // Target rainbow PU
+  if(powerUps.rainbow){
+    const dPU=Math.abs(head.x-powerUps.rainbow.x)+Math.abs(head.y-powerUps.rainbow.y);
+    const dF=Math.abs(head.x-food.x)+Math.abs(head.y-food.y);
+    if(dPU<dF+5){tx=powerUps.rainbow.x;ty=powerUps.rainbow.y}
+  }
+  // If boosted, hunt player
+  if(aiBoosts[i]>0){tx=snakes[0][0].x;ty=snakes[0][0].y}
+  // If close to player, hunt
+  const dP=Math.abs(head.x-snakes[0][0].x)+Math.abs(head.y-snakes[0][0].y);
+  if(dP<6&&ai.score>score){tx=snakes[0][0].x;ty=snakes[0][0].y}
+  const dirs=[{x:1,y:0},{x:-1,y:0},{x:0,y:1},{x:0,y:-1}];
+  const cand=[];
+  for(const d of dirs){
+    if(d.x===-ai.dir.x&&d.y===-ai.dir.y)continue;
+    const nx=(head.x+d.x+COLS)%COLS,ny=(head.y+d.y+ROWS)%ROWS;
+    let blocked=false;
+    for(let si=0;si<snakes.length;si++)if(snakes[si].some(s=>s.x===nx&&s.y===ny)){blocked=true;break}
+    if(blocked)continue;
+    if(bombs.some(b=>b.x===nx&&b.y===ny))continue;
+    cand.push({dir:d,dist:Math.abs(nx-tx)+Math.abs(ny-ty)});
+  }
+  if(cand.length>0){cand.sort((a,b)=>a.dist-b.dist);ai.nextDir=cand[0].dir}
+}
+
+function update(){
+  gameTick++;
+  if(playerBoost>0)playerBoost--;
+  for(let i=0;i<aiCount;i++)if(aiBoosts[i]>0)aiBoosts[i]--;
+
+  // Player move
+  const playerResult=moveSnake(0,window._playerDir||{x:1,y:0});
+  if(playerResult.dead){endGame('💀 You Died',score,'One of the AI got you!');return}
+  if(playerResult.cutKill!==undefined){
+    const ck=playerResult.cutKill;
+    snakes.splice(ck,1);
+    const aiReal=ck-1;
+    if(aiReal>=0&&aiReal<ais.length){ais.splice(aiReal,1);aiBoosts.splice(aiReal,1)}
+    aiCount--;
+    buildAIStats();
+    if(aiCount===0){endGame('🏆 You Win!',score,'All AI snakes eliminated!');return}
+  }
+
+  // AI
+  for(let i=aiCount-1;i>=0;i--){
+    aiThink(i);
+    ais[i].dir={...ais[i].nextDir};
+    const r=moveSnake(i+1,ais[i].dir);
+    if(r.dead){
+      // This AI died
+      snakes.splice(i+1,1);
+      ais.splice(i,1);aiBoosts.splice(i,1);
+      aiCount--;
+      // Re-process this index since arrays shifted
+      if(aiCount===0){endGame('🏆 You Win!',score,'All AI eliminated!');return}
+      buildAIStats();
+    }else if(r.cutKill!==undefined){
+      // This AI killed another snake via boost
+      const ck=r.cutKill;
+      if(ck===0){endGame('💀 You Died',score,'An AI cut through you!');return}
+      snakes.splice(ck,1);
+      const aiDead=ck-1;
+      if(aiDead>=0&&aiDead<ais.length){ais.splice(aiDead,1);aiBoosts.splice(aiDead,1)}
+      aiCount--;
+      buildAIStats();
+      if(aiCount===0){endGame('🏆 You Win!',score,'All AI eliminated!');return}
+      // Adjust loop counter since we removed an element
+      if(ck<=i+1)i--;
+    }
+  }
+
+  if(gameTick%60===0)spawnBomb();
+  powerUpTimers.rainbow++;
+  if(powerUpTimers.rainbow>=90){spawnPU('rainbow');powerUpTimers.rainbow=0}
+  powerUpTimers.yellow++;
+  if(powerUpTimers.yellow>=220){spawnPU('yellow');powerUpTimers.yellow=0} // rarely (~28s)
+}
+
+function getTickInterval(){
+  const boost=playerBoost>0||aiBoosts.some(b=>b>0);
+  return boost?BOOST_TICK:TICK;
+}
+
+function gameTickFn(){
+  if(!running)return;
+  update();draw();
+  clearInterval(gameLoop);
+  gameLoop=setInterval(gameTickFn,getTickInterval());
+}
+
+let _playerDir={x:1,y:0};
+
+function endGame(title,sc,msg){
+  running=false;clearInterval(gameLoop);
+  overlayTitle.textContent=title;finalScore.textContent=sc;finalMsg.textContent=msg;
+  overlay.classList.add('active');
+}
+
+function startGame(){
+  setupScreen.classList.remove('active');
+  if(gameLoop)clearInterval(gameLoop);
+  init();window._playerDir={x:1,y:0};
+  running=true;TICK=BASE_TICK;
+  gameLoop=setInterval(gameTickFn,TICK);
   draw();
+}
 
-  // Reflow on load (fixes initial sizing race)
-  window.addEventListener('load', () => { calcGrid(); if (!running) draw(); });
-  setTimeout(() => { calcGrid(); if (!running) draw(); }, 100);
+function showSetup(){
+  running=false;
+  if(gameLoop){clearInterval(gameLoop);gameLoop=null}
+  overlay.classList.remove('active');
+  setupScreen.classList.add('active');
+}
+
+function adjOpps(delta){
+  aiCount=Math.max(1,Math.min(8,aiCount+delta));
+  document.getElementById('oppsVal').textContent=aiCount;
+}
+
+function updateSpeedLabel(){
+  speedVal=parseInt(document.getElementById('speedSlider').value);
+  document.getElementById('speedLabel').textContent=speedVal;
+}
+
+// Controls
+document.addEventListener('keydown',e=>{
+  if(!running&&e.key!=='Enter')return;
+  const m={'ArrowUp':{x:0,y:-1},'ArrowDown':{x:0,y:1},'ArrowLeft':{x:-1,y:0},'ArrowRight':{x:1,y:0},
+    'w':{x:0,y:-1},'s':{x:0,y:1},'a':{x:-1,y:0},'d':{x:1,y:0},
+    'W':{x:0,y:-1},'S':{x:0,y:1},'A':{x:-1,y:0},'D':{x:1,y:0}};
+  const nd=m[e.key];
+  if(nd&&(nd.x!==-_playerDir.x||nd.y!==-_playerDir.y)){e.preventDefault();window._playerDir=nd}
+  if(e.key==='Enter'&&!running)startGame();
+  if(e.key===' '){e.preventDefault()}
+});
+
+let touchStart=null;
+canvas.addEventListener('touchstart',e=>{e.preventDefault();const t=e.touches[0];touchStart={x:t.clientX,y:t.clientY}},{passive:false});
+canvas.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
+canvas.addEventListener('touchend',e=>{
+  if(!touchStart)return;const t=e.changedTouches[0];
+  const dx=t.clientX-touchStart.x,dy=t.clientY-touchStart.y,ax=Math.abs(dx),ay=Math.abs(dy);
+  if(Math.max(ax,ay)<15)return;
+  if(ax>ay){const nd={x:dx>0?1:-1,y:0};if(nd.x!==-_playerDir.x)window._playerDir=nd}
+  else{const nd={x:0,y:dy>0?1:-1};if(nd.y!==-_playerDir.y)window._playerDir=nd}
+  touchStart=null;
+});
+
+window.addEventListener('resize',()=>{calcGrid();if(!running)draw()});
+window.addEventListener('load',()=>{calcGrid();if(!running)draw()});
+setTimeout(()=>{calcGrid();if(!running)draw()},100);
+
+// Initial setup
+document.getElementById('oppsVal').textContent=aiCount;
+updateSpeedLabel();
+showSetup();
 </script>
 </body>
 </html>
