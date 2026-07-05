@@ -165,10 +165,12 @@ function spawnPU(type){
 function init(){
   calcGrid();BASE_TICK=getBaseTick(speedVal);TICK=BASE_TICK;
   snakes=[];ais=[];bombs=[];particles=[];gameTick=0;
+  score=0;aiScore=0;
   powerUps={rainbow:null,yellow:null};playerBoost=0;aiBoosts=[];
   powerUpTimers={rainbow:0,yellow:0};
   const hs=parseInt(localStorage.getItem('slithergrid_high')||'0');
   highEl.textContent=hs;
+  scoreEl.textContent='0';
 
   // Player top-left
   snakes.push([{x:3,y:3},{x:2,y:3},{x:1,y:3}]);
@@ -550,8 +552,8 @@ canvas.addEventListener('touchend',e=>{
   if(!touchStart)return;const t=e.changedTouches[0];
   const dx=t.clientX-touchStart.x,dy=t.clientY-touchStart.y,ax=Math.abs(dx),ay=Math.abs(dy);
   if(Math.max(ax,ay)<15)return;
-  if(ax>ay){const nd={x:dx>0?1:-1,y:0};if(nd.x!==-_playerDir.x)window._playerDir=nd}
-  else{const nd={x:0,y:dy>0?1:-1};if(nd.y!==-_playerDir.y)window._playerDir=nd}
+  if(ax>ay){const nd={x:dx>0?1:-1,y:0};window._playerDir=nd}
+  else{const nd={x:0,y:dy>0?1:-1};window._playerDir=nd}
   touchStart=null;
 });
 
