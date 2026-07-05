@@ -360,7 +360,22 @@ function moveSnake(idx,dir){
       return{dead:true};
     }
     }
-    if(head.x===oH.x&&head.y===oH.y)return{dead:true};
+    if(head.x===oH.x&&head.y===oH.y){
+      // Try to dodge left or right instead of dying — lose 1 segment
+      const perps=[{x:dir.y,y:-dir.x},{x:-dir.y,y:dir.x}];
+      let dodged=false;
+      for(const pd of perps){
+        const nhx=(sd[0].x+pd.x+COLS)%COLS,nhy=(sd[0].y+pd.y+ROWS)%ROWS;
+        let blocked=false;
+        for(let si=0;si<snakes.length;si++)if(snakes[si].some(s=>s.x===nhx&&s.y===nhy)){blocked=true;break;}
+        if(!blocked&&!bombs.some(b=>b.x===nhx&&b.y===nhy)){
+          head.x=nhx;head.y=nhy;
+          if(isPlayer)window._playerDir={...pd};
+          dodged=true;break;
+        }
+      }
+      if(!dodged)return{dead:true};
+    }
   }
 
   // Bomb
@@ -394,7 +409,9 @@ function moveSnake(idx,dir){
       if(score>hs){localStorage.setItem('slithergrid_high',score);highEl.textContent=score}}
     else{ais[idx-1].score++;/*score hidden*/}
     spawnParticles(food.x,food.y,'#00ffaa',20);spawnFood();
-  }else if(!hb)sd.pop();
+  }else if(!hb&&!dodged)sd.pop();
+  // Dodge penalty: lose 1 extra segment
+  if(dodged){const loseD=sd.pop();if(sd.length<3)return{dead:true};}
   return{dead:false};
 }
 
