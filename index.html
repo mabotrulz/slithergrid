@@ -352,7 +352,7 @@ function moveSnake(idx,dir){
         }else{ais[idx-1].score+=Math.floor(cut.length/3)+1;}
         if(os.length<3)return{cutKill:oi};
       }else{
-        const cutLen=Math.max(2,Math.floor(sd.length*0.35));
+        const cutLen=1;
         if(sd.length-cutLen<3)return{dead:true};
         sd.splice(sd.length-cutLen,cutLen);
         spawnParticles(sd[0].x,sd[0].y,'#ff3344',15,true);
