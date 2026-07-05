@@ -191,7 +191,7 @@
 
 <div class="game-wrapper">
   <div class="header">
-    <h1>~ slithergrid ~ <span style="font-size:0.35em;color:#555;letter-spacing:1px;font-weight:300;">v1.5.0</span></h1>
+    <h1>~ slithergrid ~ <span style="font-size:0.35em;color:#555;letter-spacing:1px;font-weight:300;">v2.0.0</span></h1>
     <div class="stats">
       <div class="stat">
         <div class="stat-label">You</div>
@@ -239,6 +239,11 @@
   const hintEl = document.getElementById('hint');
 
   const GRID = 15;
+  const TICK = 130;
+  const BOOST_DURATION = 100; // ticks at 130ms ≈ 13 seconds
+  const BOOST_TICK = 70;
+  const POWERUP_INTERVAL = 90; // ticks ≈ 12 seconds
+
   let COLS, ROWS, CELL;
 
   let snake, aiSnake, food, bombs, direction, nextDirection;
@@ -246,6 +251,11 @@
   let score, aiScore, highscore, gameLoop, running;
   let particles = [];
   let gameTick = 0;
+
+  let powerUp = null;
+  let playerBoost = 0;
+  let aiBoost = 0;
+  let powerUpTimer = 0;
 
   function calcGrid() {
     const parent = canvas.parentElement;
@@ -276,6 +286,10 @@
     particles = [];
     bombs = [];
     gameTick = 0;
+    powerUp = null;
+    playerBoost = 0;
+    aiBoost = 0;
+    powerUpTimer = 0;
     highscore = parseInt(localStorage.getItem('slithergrid_high') || '0');
     highEl.textContent = highscore;
     spawnFood();
@@ -291,7 +305,8 @@
       (snake.some(s => s.x === pos.x && s.y === pos.y) ||
        aiSnake.some(s => s.x === pos.x && s.y === pos.y) ||
        (food && food.x === pos.x && food.y === pos.y) ||
-       bombs.some(b => b.x === pos.x && b.y === pos.y)) &&
+       bombs.some(b => b.x === pos.x && b.y === pos.y) ||
+       (powerUp && powerUp.x === pos.x && powerUp.y === pos.y)) &&
       attempts < 500
     );
     food = pos;
@@ -308,11 +323,31 @@
       (snake.some(s => s.x === pos.x && s.y === pos.y) ||
        aiSnake.some(s => s.x === pos.x && s.y === pos.y) ||
        (food && food.x === pos.x && food.y === pos.y) ||
-       bombs.some(b => b.x === pos.x && b.y === pos.y)) &&
+       bombs.some(b => b.x === pos.x && b.y === pos.y) ||
+       (powerUp && powerUp.x === pos.x && powerUp.y === pos.y)) &&
       attempts < 200
     );
     if (attempts < 200) {
       bombs.push({x: pos.x, y: pos.y, timer: 0});
+    }
+  }
+
+  function spawnPowerUp() {
+    if (powerUp) return;
+    let pos;
+    let attempts = 0;
+    do {
+      pos = {x: Math.floor(Math.random() * COLS), y: Math.floor(Math.random() * ROWS)};
+      attempts++;
+    } while (
+      (snake.some(s => s.x === pos.x && s.y === pos.y) ||
+       aiSnake.some(s => s.x === pos.x && s.y === pos.y) ||
+       (food && food.x === pos.x && food.y === pos.y) ||
+       bombs.some(b => b.x === pos.x && b.y === pos.y)) &&
+      attempts < 200
+    );
+    if (attempts < 200) {
+      powerUp = {x: pos.x, y: pos.y};
     }
   }
 
@@ -474,6 +509,32 @@
       ctx.shadowBlur = 0;
     }
 
+    // Power-up (yellow, same style as food)
+    if (powerUp) {
+      const px = powerUp.x * CELL + CELL/2;
+      const py = powerUp.y * CELL + CELL/2;
+      const ppulse = 1 + Math.sin(gameTick * 0.15) * 0.1;
+      const pgrad = ctx.createRadialGradient(px, py, 0, px, py, CELL * 1.4);
+      pgrad.addColorStop(0, 'rgba(255, 215, 0, 0.35)');
+      pgrad.addColorStop(1, 'rgba(255, 215, 0, 0)');
+      ctx.fillStyle = pgrad;
+      ctx.fillRect(powerUp.x * CELL - CELL, powerUp.y * CELL - CELL, CELL * 3, CELL * 3);
+      ctx.fillStyle = '#ffd700';
+      ctx.shadowColor = '#ffd700';
+      ctx.shadowBlur = 20;
+      ctx.beginPath();
+      ctx.arc(px, py, CELL * 0.4 * ppulse, 0, Math.PI * 2);
+      ctx.fill();
+      // Lightning bolt
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#fff';
+      ctx.font = `bold ${CELL * 0.45}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('⚡', px, py + 1);
+      ctx.shadowBlur = 0;
+    }
+
     // Particles
     ctx.save();
     particles = particles.filter(p => {
@@ -515,6 +576,25 @@
     }
   }
 
+  function rainbowParticles(segments) {
+    const rainbow = ['#ff0000','#ff8800','#ffff00','#00ff00','#0088ff','#8800ff','#ff00ff'];
+    for (const seg of segments) {
+      for (let i = 0; i < 8; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 5 + 1;
+        particles.push({
+          x: seg.x * CELL + CELL/2,
+          y: seg.y * CELL + CELL/2,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - 1,
+          life: 0.8 + Math.random() * 0.6,
+          color: rainbow[Math.floor(Math.random() * rainbow.length)],
+          size: 4 + Math.random() * 3
+        });
+      }
+    }
+  }
+
   function moveSnake(snakeData, dir, isPlayer) {
     const head = {
       x: snakeData[0].x + dir.x,
@@ -531,9 +611,39 @@
       return { dead: true };
     }
 
-    // Collision with other snake
+    // Collision with other snake — during boost, CUT instead of die
     const other = isPlayer ? aiSnake : snake;
-    if (other.some(s => s.x === head.x && s.y === head.y)) {
+    const otherHead = other[0];
+    const hitBody = other.findIndex((s, i) => i > 0 && s.x === head.x && s.y === head.y);
+
+    if (hitBody > 0) {
+      if ((isPlayer && playerBoost > 0) || (!isPlayer && aiBoost > 0)) {
+        // Cut the other snake from hit point to tail
+        const cutSegments = other.splice(hitBody);
+        rainbowParticles(cutSegments);
+        // Score bonus
+        if (isPlayer) {
+          score += Math.floor(cutSegments.length / 3) + 1;
+          scoreEl.textContent = score;
+          if (score > highscore) {
+            highscore = score;
+            localStorage.setItem('slithergrid_high', highscore);
+            highEl.textContent = highscore;
+          }
+        } else {
+          aiScore += Math.floor(cutSegments.length / 3) + 1;
+          aiScoreEl.textContent = aiScore;
+        }
+        // If other snake is now too short, it dies
+        if (other.length < 3) {
+          return { dead: true };
+        }
+      } else {
+        // Normal collision — die
+        return { dead: true };
+      }
+    } else if (head.x === otherHead.x && head.y === otherHead.y) {
+      // Head-on collision — both die? Or just this snake dies. Both die is more fun.
       return { dead: true };
     }
 
@@ -549,6 +659,26 @@
         return { dead: true };
       }
       snakeData.splice(snakeData.length - cutLen, cutLen);
+    }
+
+    // Power-up collection
+    if (powerUp && head.x === powerUp.x && head.y === powerUp.y) {
+      powerUp = null;
+      if (isPlayer) {
+        playerBoost = BOOST_DURATION;
+      } else {
+        aiBoost = BOOST_DURATION;
+      }
+      spawnParticles(head.x, head.y, '#ffd700', 25, true);
+      // Reschedule hint
+      hintEl.textContent = isPlayer ? '⚡ BOOST ACTIVE! Cut through the AI!' : '';
+      hintEl.style.color = '#ffd700';
+      if (isPlayer) {
+        setTimeout(() => {
+          hintEl.textContent = 'W A S D · Arrows · Swipe';
+          hintEl.style.color = '#444';
+        }, 2000);
+      }
     }
 
     snakeData.unshift(head);
@@ -587,9 +717,24 @@
   function aiThink() {
     const head = aiSnake[0];
 
-    // Simple AI: try to move toward food, avoid self, avoid player
+    // Go for power-up if available and close
     let targetX = food.x;
     let targetY = food.y;
+
+    if (powerUp) {
+      const distToPU = Math.abs(head.x - powerUp.x) + Math.abs(head.y - powerUp.y);
+      const distToFood = Math.abs(head.x - food.x) + Math.abs(head.y - food.y);
+      if (distToPU < distToFood + 5) {
+        targetX = powerUp.x;
+        targetY = powerUp.y;
+      }
+    }
+
+    // If AI is boosted, hunt player
+    if (aiBoost > 0) {
+      targetX = snake[0].x;
+      targetY = snake[0].y;
+    }
 
     // If AI is close to player, try to cut them off
     const distToPlayer = Math.abs(head.x - snake[0].x) + Math.abs(head.y - snake[0].y);
@@ -634,6 +779,10 @@
   function update() {
     gameTick++;
 
+    // Boost timers
+    if (playerBoost > 0) playerBoost--;
+    if (aiBoost > 0) aiBoost--;
+
     // Player
     direction = {...nextDirection};
     const playerResult = moveSnake(snake, direction, true);
@@ -655,6 +804,18 @@
     if (gameTick % 60 === 0) {
       spawnBomb();
     }
+
+    // Power-up spawning
+    powerUpTimer++;
+    if (powerUpTimer >= POWERUP_INTERVAL) {
+      spawnPowerUp();
+      powerUpTimer = 0;
+    }
+  }
+
+  function getTickInterval() {
+    const boost = playerBoost > 0 || aiBoost > 0;
+    return boost ? BOOST_TICK : TICK;
   }
 
   function endGame(title, finalScoreVal, msg) {
@@ -671,6 +832,9 @@
     if (!running) return;
     update();
     draw();
+    // Re-schedule with current tick speed (supports boost)
+    clearInterval(gameLoop);
+    gameLoop = setInterval(gameTickFn, getTickInterval());
   }
 
   function resetGame() {
@@ -678,7 +842,7 @@
     if (gameLoop) clearInterval(gameLoop);
     init();
     running = true;
-    gameLoop = setInterval(gameTickFn, 100);
+    gameLoop = setInterval(gameTickFn, TICK);
     draw();
     hintEl.textContent = 'W A S D · Arrows · Swipe';
     hintEl.style.color = '#444';
