@@ -10,7 +10,6 @@ body{background:#0a0a0f;display:flex;justify-content:center;align-items:center;m
 .game-wrapper{position:relative;width:100vw;height:100vh;height:100dvh;background:#0d0d18;display:flex;flex-direction:column}
 .header{display:flex;justify-content:space-between;align-items:center;padding:8px 16px;background:#111118;border-bottom:1px solid #1a1a2e;flex-shrink:0}
 h1{color:#00ffaa;font-size:clamp(12px,3vw,22px);font-weight:400;letter-spacing:0.3em;text-transform:uppercase;text-shadow:0 0 20px rgba(0,255,170,0.3);white-space:nowrap}
-h1 .ver{font-size:0.35em;color:#555;letter-spacing:1px;font-weight:300}
 .stats{display:flex;gap:12px;align-items:center}
 .stat{text-align:center;min-width:45px}
 .stat-label{color:#555;font-size:clamp(7px,1.5vw,10px);letter-spacing:1px;text-transform:uppercase}
@@ -51,7 +50,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 <body>
 <div class="game-wrapper">
   <div class="header">
-    <h1>~ slithergrid ~ <span class="ver">v2.1.0</span></h1>
+    <h1>~ slithergrid ~</h1>
     <div class="stats">
       <div class="stat"><div class="stat-label">You</div><div class="stat-value" id="score">0</div></div>
       <div class="stat" id="aiStatContainer"></div>
@@ -97,7 +96,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
   </div>
   <div class="controls">
     <span class="direction-hint" id="hint">W A S D · Arrows · Swipe</span>
-    <button onclick="showSetup()">↻ New Game</button>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="color:#333;font-size:clamp(7px,1.5vw,10px);letter-spacing:1px">v2.1.0</span>
+      <button onclick="showSetup()">↻ New Game</button>
+    </div>
   </div>
 </div>
 
@@ -310,7 +312,7 @@ function draw(){
   // AI snakes
   for(let i=0;i<aiCount;i++)drawSnake(snakes[i+1],ais[i].dir,true,i);
   // Player
-  drawSnake(snakes[0],{x:1,y:0},false,0);
+  drawSnake(snakes[0],window._playerDir||{x:1,y:0},false,0);
 }
 
 function spawnParticles(x,y,color,count,big){
@@ -498,7 +500,8 @@ let _playerDir={x:1,y:0};
 
 function endGame(title,sc,msg){
   running=false;clearInterval(gameLoop);
-  overlayTitle.textContent=title;finalScore.textContent=sc;finalMsg.textContent=msg;
+  overlayTitle.textContent=title;finalScore.textContent=sc;
+  finalMsg.textContent=String(msg||'Game over');
   overlay.classList.add('active');
 }
 
@@ -535,7 +538,7 @@ document.addEventListener('keydown',e=>{
     'w':{x:0,y:-1},'s':{x:0,y:1},'a':{x:-1,y:0},'d':{x:1,y:0},
     'W':{x:0,y:-1},'S':{x:0,y:1},'A':{x:-1,y:0},'D':{x:1,y:0}};
   const nd=m[e.key];
-  if(nd){e.preventDefault();window._playerDir=nd}
+  if(nd&&(nd.x!==-_playerDir.x||nd.y!==-_playerDir.y)){e.preventDefault();window._playerDir=nd}
   if(e.key==='Enter'&&!running)startGame();
   if(e.key===' '){e.preventDefault()}
 });
