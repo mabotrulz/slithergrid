@@ -221,7 +221,7 @@ function getColor(i,len,isAi,idx){
 
 function drawSnake(snakeData,dir,isAi,idx,blink){
   const len=snakeData.length;const col=isAi?'#ff6b9d':'#00ffaa';
-  if(blink&&Math.floor(gameTick/3)%2===0)return;
+  if(blink&&gameTick%2===0)return;
   const glowCol=isAi?'rgba(255,107,157,0.1)':'rgba(0,255,170,0.1)';
   for(let i=len-1;i>=0;i--){
     const s=snakeData[i],isH=i===0,pad=isH?1:2,sz=CELL-pad*2;
