@@ -586,14 +586,15 @@ showSetup();
 
 // Music
 const bgMusic=new Audio('assets/soundtrack.m4a');
-bgMusic.loop=true;let musicOn=false;
+bgMusic.loop=true;let musicOn=true;
 function toggleMusic(){
   musicOn=!musicOn;
   if(musicOn){bgMusic.play().catch(()=>{});document.getElementById('musicBtn').textContent='🔊'}
   else{bgMusic.pause();document.getElementById('musicBtn').textContent='🔇'}
 }
-// Try to resume music context on first click
-document.addEventListener('click',()=>{if(bgMusic.context&&bgMusic.context.state==='suspended')bgMusic.context.resume()});
+// Auto-play on first user interaction
+document.addEventListener('click',()=>{if(!bgMusic.paused)return;bgMusic.play().catch(()=>{});document.getElementById('musicBtn').textContent='🔊';musicOn=true},{once:true});
+document.getElementById('musicBtn').textContent='🔊';
 </script>
 </body>
 </html>
