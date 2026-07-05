@@ -507,13 +507,13 @@ describe('Speed configuration', () => {
   const w = game.w;
   
   w.speedVal = 0;
-  assertEq(w.getBaseTick(0), 100, 'Speed 0 = 100ms');
+  assertEq(w.getBaseTick(0), 170, 'Speed 0 = 170ms');
   
   w.speedVal = 4;
-  assertEq(w.getBaseTick(4), 80, 'Speed 4 = 80ms');
+  assertEq(w.getBaseTick(4), 130, 'Speed 4 = 130ms');
   
   w.speedVal = 10;
-  assertEq(w.getBaseTick(10), 50, 'Speed 10 = 50ms');
+  assertEq(w.getBaseTick(10), 70, 'Speed 10 = 70ms');
 });
 
 describe('Game initialization with different AI counts', () => {
