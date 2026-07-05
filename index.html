@@ -10,7 +10,7 @@ body{background:#0a0a0f;display:flex;justify-content:center;align-items:center;m
 .game-wrapper{position:relative;width:100vw;height:100vh;height:100dvh;background:#0d0d18;display:flex;flex-direction:column}
 .header{display:flex;justify-content:space-between;align-items:center;padding:8px 16px;background:#111118;border-bottom:1px solid #1a1a2e;flex-shrink:0}
 h1{color:#00ffaa;font-size:clamp(12px,3vw,22px);font-weight:400;letter-spacing:0.3em;text-transform:uppercase;text-shadow:0 0 20px rgba(0,255,170,0.3);white-space:nowrap}
-.stats{display:flex;gap:12px;align-items:center}
+.stats{display:flex;gap:8px;align-items:center;overflow-x:auto;flex-shrink:1}
 .stat{text-align:center;min-width:45px}
 .stat-label{color:#555;font-size:clamp(7px,1.5vw,10px);letter-spacing:1px;text-transform:uppercase}
 .stat-value{color:#fff;font-size:clamp(14px,3.5vw,22px);font-weight:bold}
@@ -188,11 +188,22 @@ function init(){
   ];
   for(let i=0;i<aiCount;i++){
     const fn=corners[i%corners.length];
-    if(i>0)while(true){
-      const test=fn();const ok=test.every(t=>posFree(t.x,t.y,-1));
-      if(ok)break;const idx=Math.floor(Math.random()*corners.length);
+    let placed=false;
+    for(let attempt=0;attempt<100;attempt++){
+      const test=fn();
+      if(test.every(t=>posFree(t.x,t.y,-1))){
+        snakes.push(test);
+        placed=true;
+        break;
+      }
     }
-    snakes.push(fn());
+    if(!placed){
+      // Fallback: random free position
+      let pos;
+      do{pos={x:3+Math.floor(Math.random()*(COLS-6)),y:3+Math.floor(Math.random()*(ROWS-6))}}
+      while(!posFree(pos.x,pos.y,-1));
+      snakes.push([pos,{x:pos.x-1,y:pos.y},{x:pos.x-2,y:pos.y}]);
+    }
     const dirs=[{x:-1,y:0},{x:1,y:0},{x:-1,y:0},{x:1,y:0},{x:0,y:-1},{x:0,y:1},{x:0,y:-1},{x:0,y:1}];
     const d=dirs[i%dirs.length];
     ais.push({dir:d,nextDir:d,boost:0,name:AI_NAMES[i%AI_NAMES.length],score:0});
