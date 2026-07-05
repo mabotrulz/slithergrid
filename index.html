@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SlitherGrid</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0a0a0f;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      font-family: 'Courier New', monospace;
+      overflow: hidden;
+    }
+
+    .game-wrapper {
+      position: relative;
+      padding: 30px;
+      background: #111118;
+      border-radius: 20px;
+      box-shadow: 0 0 60px rgba(0, 255, 170, 0.08), inset 0 0 60px rgba(0, 0, 0, 0.5);
+      border: 1px solid #1a1a2e;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding: 0 5px;
+    }
+
+    h1 {
+      color: #00ffaa;
+      font-size: 28px;
+      font-weight: 400;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      text-shadow: 0 0 20px rgba(0, 255, 170, 0.3);
+    }
+
+    .stats {
+      display: flex;
+      gap: 30px;
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-label {
+      color: #555;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .stat-value {
+      color: #fff;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .stat-value.high {
+      color: #ffd700;
+    }
+
+    canvas {
+      display: block;
+      border: 1px solid #1a1a2e;
+      border-radius: 8px;
+      background: #0d0d18;
+      box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.8);
+    }
+
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 20px;
+    }
+
+    button {
+      background: transparent;
+      border: 1px solid #00ffaa;
+      color: #00ffaa;
+      padding: 10px 30px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+
+    button:hover {
+      background: rgba(0, 255, 170, 0.1);
+      box-shadow: 0 0 20px rgba(0, 255, 170, 0.2);
+    }
+
+    .direction-hint {
+      color: #333;
+      font-size: 11px;
+      letter-spacing: 1px;
+    }
+
+    .overlay {
+      position: absolute;
+      top: 30px;
+      left: 30px;
+      right: 30px;
+      bottom: 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: rgba(10, 10, 15, 0.85);
+      border-radius: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+      z-index: 10;
+    }
+
+    .overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .overlay h2 {
+      color: #ff4757;
+      font-size: 36px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      text-shadow: 0 0 30px rgba(255, 71, 87, 0.3);
+      margin-bottom: 10px;
+    }
+
+    .overlay .sub {
+      color: #888;
+      font-size: 14px;
+      margin-bottom: 30px;
+    }
+
+    .overlay .final-score {
+      color: #fff;
+      font-size: 48px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .overlay .final-label {
+      color: #555;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 30px;
+    }
+
+    .overlay button {
+      border-color: #ff4757;
+      color: #ff4757;
+    }
+
+    .overlay button:hover {
+      background: rgba(255, 71, 87, 0.1);
+    }
+  </style>
+</head>
+<body>
+
+<div class="game-wrapper">
+  <div class="header">
+    <h1>~ slithergrid ~</h1>
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-label">Score</div>
+        <div class="stat-value" id="score">0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Best</div>
+        <div class="stat-value high" id="highscore">0</div>
+      </div>
+    </div>
+  </div>
+
+  <canvas id="game" width="600" height="600"></canvas>
+
+  <div class="controls">
+    <span class="direction-hint">W A S D &nbsp;·&nbsp; Arrow keys</span>
+    <button onclick="resetGame()">↻ New Game</button>
+  </div>
+
+  <div class="overlay" id="overlay">
+    <h2>💀 Game Over</h2>
+    <div class="final-score" id="finalScore">0</div>
+    <div class="final-label">points</div>
+    <div class="sub" id="finalMsg">You collided with yourself</div>
+    <button onclick="resetGame()">↻ Play Again</button>
+  </div>
+</div>
+
+<script>
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const scoreEl = document.getElementById('score');
+  const highEl = document.getElementById('highscore');
+  const overlay = document.getElementById('overlay');
+  const finalScore = document.getElementById('finalScore');
+  const finalMsg = document.getElementById('finalMsg');
+
+  const GRID = 20;
+  const COLS = 30;
+  const ROWS = 30;
+  const CELL = canvas.width / COLS;
+
+  let snake, food, direction, nextDirection, score, highscore, gameLoop, running;
+  let particles = [];
+
+  const DEATH_MSGS = [
+    "You bit yourself. Rude.",
+    "No walls, just pain.",
+    "Snake.exe stopped working",
+    "You ran into yourself. Awkward.",
+    "That's gonna leave a mark",
+    "Skill issue detected",
+    "Your snake needs therapy now",
+    "Ouch. Right in the ego."
+  ];
+
+  function init() {
+    const midX = Math.floor(COLS / 2);
+    const midY = Math.floor(ROWS / 2);
+    snake = [{x: midX, y: midY}, {x: midX - 1, y: midY}, {x: midX - 2, y: midY}];
+    direction = {x: 1, y: 0};
+    nextDirection = {x: 1, y: 0};
+    score = 0;
+    particles = [];
+    highscore = parseInt(localStorage.getItem('slithergrid_high') || '0');
+    highEl.textContent = highscore;
+    spawnFood();
+  }
+
+  function spawnFood() {
+    let pos;
+    do {
+      pos = {x: Math.floor(Math.random() * COLS), y: Math.floor(Math.random() * ROWS)};
+    } while (snake.some(s => s.x === pos.x && s.y === pos.y));
+    food = pos;
+  }
+
+  function getColorForSegment(i, total) {
+    const t = i / total;
+    const r = Math.floor(0 + t * 0);
+    const g = Math.floor(200 + t * 55);
+    const b = Math.floor(100 + t * 155);
+    return `rgb(${r},${g},${b})`;
+  }
+
+  function draw() {
+    // Clear
+    ctx.fillStyle = '#0d0d18';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Grid
+    ctx.strokeStyle = 'rgba(255,255,255,0.02)';
+    ctx.lineWidth = 1;
+    for (let i = 1; i < COLS; i++) {
+      ctx.beginPath();
+      ctx.moveTo(i * CELL, 0);
+      ctx.lineTo(i * CELL, canvas.height);
+      ctx.stroke();
+    }
+    for (let i = 1; i < ROWS; i++) {
+      ctx.beginPath();
+      ctx.moveTo(0, i * CELL);
+      ctx.lineTo(canvas.width, i * CELL);
+      ctx.stroke();
+    }
+
+    // Food glow
+    const fx = food.x * CELL + CELL/2;
+    const fy = food.y * CELL + CELL/2;
+    const grad = ctx.createRadialGradient(fx, fy, 0, fx, fy, CELL);
+    grad.addColorStop(0, 'rgba(255, 50, 50, 0.4)');
+    grad.addColorStop(1, 'rgba(255, 50, 50, 0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(food.x * CELL - CELL, food.y * CELL - CELL, CELL * 3, CELL * 3);
+
+    // Food
+    ctx.fillStyle = '#ff3344';
+    ctx.shadowColor = '#ff3344';
+    ctx.shadowBlur = 15;
+    ctx.beginPath();
+    ctx.arc(fx, fy, CELL * 0.35, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Particles
+    particles = particles.filter(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.life -= 0.02;
+      if (p.life <= 0) return false;
+      ctx.globalAlpha = p.life;
+      ctx.fillStyle = p.color;
+      ctx.fillRect(p.x, p.y, 3, 3);
+      ctx.globalAlpha = 1;
+      return true;
+    });
+
+    // Snake
+    const len = snake.length;
+    for (let i = len - 1; i >= 0; i--) {
+      const s = snake[i];
+      const padding = i === 0 ? 2 : 3;
+      const size = CELL - padding * 2;
+
+      // Glow on head
+      if (i === 0) {
+        const hx = s.x * CELL + CELL/2;
+        const hy = s.y * CELL + CELL/2;
+        const hg = ctx.createRadialGradient(hx, hy, 0, hx, hy, CELL);
+        hg.addColorStop(0, 'rgba(0, 255, 170, 0.15)');
+        hg.addColorStop(1, 'rgba(0, 255, 170, 0)');
+        ctx.fillStyle = hg;
+        ctx.fillRect(s.x * CELL - CELL/2, s.y * CELL - CELL/2, CELL * 2, CELL * 2);
+      }
+
+      const color = getColorForSegment(i, len);
+      ctx.fillStyle = color;
+      ctx.shadowColor = i === 0 ? '#00ffaa' : color;
+      ctx.shadowBlur = i === 0 ? 12 : 6;
+
+      const cx = s.x * CELL + padding;
+      const cy = s.y * CELL + padding;
+
+      if (i === 0) {
+        // Rounded head
+        ctx.beginPath();
+        ctx.roundRect(cx, cy, size, size, 5);
+        ctx.fill();
+      } else {
+        ctx.fillRect(cx, cy, size, size);
+      }
+
+      // Eyes on head
+      if (i === 0) {
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = '#fff';
+        let ex1, ey1, ex2, ey2;
+        const eyeSize = 3;
+        if (direction.x === 1) {
+          ex1 = s.x * CELL + CELL * 0.65; ey1 = s.y * CELL + CELL * 0.3;
+          ex2 = s.x * CELL + CELL * 0.65; ey2 = s.y * CELL + CELL * 0.7;
+        } else if (direction.x === -1) {
+          ex1 = s.x * CELL + CELL * 0.35; ey1 = s.y * CELL + CELL * 0.3;
+          ex2 = s.x * CELL + CELL * 0.35; ey2 = s.y * CELL + CELL * 0.7;
+        } else if (direction.y === -1) {
+          ex1 = s.x * CELL + CELL * 0.3; ey1 = s.y * CELL + CELL * 0.35;
+          ex2 = s.x * CELL + CELL * 0.7; ey2 = s.y * CELL + CELL * 0.35;
+        } else {
+          ex1 = s.x * CELL + CELL * 0.3; ey1 = s.y * CELL + CELL * 0.65;
+          ex2 = s.x * CELL + CELL * 0.7; ey2 = s.y * CELL + CELL * 0.65;
+        }
+        ctx.beginPath();
+        ctx.arc(ex1, ey1, eyeSize, 0, Math.PI * 2);
+        ctx.arc(ex2, ey2, eyeSize, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Pupils
+        ctx.fillStyle = '#0a0a0f';
+        ctx.beginPath();
+        ctx.arc(ex1 + direction.x * 1, ey1 + direction.y * 1, 1.5, 0, Math.PI * 2);
+        ctx.arc(ex2 + direction.x * 1, ey2 + direction.y * 1, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    ctx.shadowBlur = 0;
+  }
+
+  function spawnParticles(x, y, color, count) {
+    for (let i = 0; i < count; i++) {
+      particles.push({
+        x: x * CELL + CELL/2,
+        y: y * CELL + CELL/2,
+        vx: (Math.random() - 0.5) * 4,
+        vy: (Math.random() - 0.5) * 4,
+        life: 1,
+        color: color || `hsl(${Math.random() * 60 + 140}, 100%, 70%)`
+      });
+    }
+  }
+
+  function update() {
+    direction = {...nextDirection};
+
+    const head = {
+      x: snake[0].x + direction.x,
+      y: snake[0].y + direction.y
+    };
+
+    // Wrap around
+    if (head.x < 0) head.x = COLS - 1;
+    if (head.x >= COLS) head.x = 0;
+    if (head.y < 0) head.y = ROWS - 1;
+    if (head.y >= ROWS) head.y = 0;
+
+    // Self collision
+    if (snake.some(s => s.x === head.x && s.y === head.y)) {
+      die("You collided with yourself");
+      return;
+    }
+
+    snake.unshift(head);
+
+    // Eat food
+    if (head.x === food.x && head.y === food.y) {
+      score++;
+      scoreEl.textContent = score;
+      spawnParticles(food.x, food.y, null, 20);
+      if (score > highscore) {
+        highscore = score;
+        localStorage.setItem('slithergrid_high', highscore);
+        highEl.textContent = highscore;
+      }
+      spawnFood();
+    } else {
+      snake.pop();
+    }
+  }
+
+  function die(msg) {
+    running = false;
+    clearInterval(gameLoop);
+    finalScore.textContent = score;
+    finalMsg.textContent = msg || DEATH_MSGS[Math.floor(Math.random() * DEATH_MSGS.length)];
+    overlay.classList.add('active');
+  }
+
+  function gameTick() {
+    if (!running) return;
+    update();
+    draw();
+  }
+
+  function resetGame() {
+    overlay.classList.remove('active');
+    if (gameLoop) clearInterval(gameLoop);
+    init();
+    running = true;
+    gameLoop = setInterval(gameTick, 100);
+    draw();
+  }
+
+  // Controls
+  document.addEventListener('keydown', e => {
+    if (!running && e.key !== 'Enter') return;
+    const map = {
+      'ArrowUp': {x: 0, y: -1}, 'ArrowDown': {x: 0, y: 1},
+      'ArrowLeft': {x: -1, y: 0}, 'ArrowRight': {x: 1, y: 0},
+      'w': {x: 0, y: -1}, 's': {x: 0, y: 1},
+      'a': {x: -1, y: 0}, 'd': {x: 1, y: 0},
+      'W': {x: 0, y: -1}, 'S': {x: 0, y: 1},
+      'A': {x: -1, y: 0}, 'D': {x: 1, y: 0}
+    };
+    const nd = map[e.key];
+    if (nd && (nd.x !== -direction.x || nd.y !== -direction.y)) {
+      e.preventDefault();
+      nextDirection = nd;
+    }
+    if (e.key === 'Enter' && !running) resetGame();
+  });
+
+  // Touch controls for mobile
+  let touchStart = null;
+  canvas.addEventListener('touchstart', e => {
+    const t = e.touches[0];
+    touchStart = {x: t.clientX, y: t.clientY};
+  });
+  canvas.addEventListener('touchend', e => {
+    if (!touchStart) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - touchStart.x;
+    const dy = t.clientY - touchStart.y;
+    const adx = Math.abs(dx), ady = Math.abs(dy);
+    if (Math.max(adx, ady) < 20) return;
+    if (adx > ady) {
+      const nd = {x: dx > 0 ? 1 : -1, y: 0};
+      if (nd.x !== -direction.x) nextDirection = nd;
+    } else {
+      const nd = {x: 0, y: dy > 0 ? 1 : -1};
+      if (nd.y !== -direction.y) nextDirection = nd;
+    }
+    touchStart = null;
+  });
+
+  // Start
+  init();
+  draw();
+
+  // Pause/Resume with Space
+  document.addEventListener('keydown', e => {
+    if (e.key === ' ' && running) {
+      e.preventDefault();
+      if (gameLoop) {
+        clearInterval(gameLoop);
+        gameLoop = null;
+      } else {
+        gameLoop = setInterval(gameTick, 100);
+      }
+    }
+  });
+</script>
+</body>
+</html>
