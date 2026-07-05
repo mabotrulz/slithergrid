@@ -116,8 +116,8 @@ const RAINBOW_COLORS=['#ff0000','#ff8800','#ffff00','#00ff00','#0088ff','#8800ff
 let aiCount=2,speedVal=4;
 let snakes=[],ais=[],food,bombs,particles=[],gameTick=0,gameLoop,running=false;
 let powerUps={rainbow:null,yellow:null};
-let playerBoost=0,aiBoosts=[];
-let powerUpTimers={rainbow:0,yellow:0};
+let playerBoost=0,aiBoosts=[],playerBlink=0,snakeBlink=[];
+let powerUpTimers={rainbow:0,yellow:0};playerBlink=0;snakeBlink=[];
 const BOOST_DURATION=100,BOOST_TICK=70;
 
 const AI_NAMES=['Neon','Viper','Cobra','Fang','Byte','Pixel','Glitch','Spark'];
@@ -164,8 +164,8 @@ function init(){
   calcGrid();BASE_TICK=getBaseTick(speedVal);TICK=BASE_TICK;
   snakes=[];ais=[];bombs=[];particles=[];gameTick=0;
   score=0;aiScore=0;
-  powerUps={rainbow:null,yellow:null};playerBoost=0;aiBoosts=[];
-  powerUpTimers={rainbow:0,yellow:0};
+  powerUps={rainbow:null,yellow:null};playerBoost=0;aiBoosts=[];playerBlink=0;snakeBlink=[];
+  powerUpTimers={rainbow:0,yellow:0};playerBlink=0;snakeBlink=[];
   const hs=parseInt(localStorage.getItem('slithergrid_high')||'0');
   highEl.textContent=hs;
   scoreEl.textContent='0';
@@ -219,8 +219,9 @@ function getColor(i,len,isAi,idx){
   return `rgb(0,${Math.floor(200+t*55)},${Math.floor(100+t*155)})`;
 }
 
-function drawSnake(snakeData,dir,isAi,idx){
+function drawSnake(snakeData,dir,isAi,idx,blink){
   const len=snakeData.length;const col=isAi?'#ff6b9d':'#00ffaa';
+  if(blink&&Math.floor(gameTick/3)%2===0)return;
   const glowCol=isAi?'rgba(255,107,157,0.1)':'rgba(0,255,170,0.1)';
   for(let i=len-1;i>=0;i--){
     const s=snakeData[i],isH=i===0,pad=isH?1:2,sz=CELL-pad*2;
@@ -312,9 +313,9 @@ function draw(){
   ctx.restore();ctx.shadowBlur=0;
 
   // AI snakes
-  for(let i=0;i<aiCount;i++)drawSnake(snakes[i+1],ais[i].dir,true,i);
+  for(let i=0;i<aiCount;i++)drawSnake(snakes[i+1],ais[i].dir,true,i,snakeBlink[i]);
   // Player
-  drawSnake(snakes[0],window._playerDir||{x:1,y:0},false,0);
+  drawSnake(snakes[0],window._playerDir||{x:1,y:0},false,0,playerBlink);
 }
 
 function spawnParticles(x,y,color,count,big){
@@ -351,11 +352,34 @@ function moveSnake(idx,dir){
           if(score>hs){localStorage.setItem('slithergrid_high',score);highEl.textContent=score}
         }else{ais[idx-1].score+=Math.floor(cut.length/3)+1;}
         if(os.length<3)return{cutKill:oi};
+        // After boost cut, check if cut snake is at min size
+        if(os.length===3){
+          const targetBlink=oi===0?playerBlink:snakeBlink[oi-1];
+          if(oi===0)playerBlink=20;else{snakeBlink[oi-1]=20;}
+        }
       }else{
         const cutLen=1;
         if(sd.length-cutLen<3)return{dead:true};
         sd.splice(sd.length-cutLen,cutLen);
         spawnParticles(sd[0].x,sd[0].y,'#ff3344',15,true);
+        if(sd.length===3){
+          if(isPlayer)playerBlink=20;else snakeBlink[idx-1]=20;
+        }
+        // Try to escape to any free adjacent cell
+        const freeDirs=[{x:1,y:0},{x:-1,y:0},{x:0,y:1},{x:0,y:-1}];
+        let esc=false;
+        for(const fd of freeDirs){
+          if(fd.x===-dir.x&&fd.y===-dir.y)continue;
+          const nxx=(head.x+fd.x+COLS)%COLS,nyy=(head.y+fd.y+ROWS)%ROWS;
+          let bl=false;
+          for(let si=0;si<snakes.length;si++)if(snakes[si].some(s=>s.x===nxx&&s.y===nyy)){bl=true;break;}
+          if(!bl&&!bombs.some(b=>b.x===nxx&&b.y===nyy)){
+            head.x=nxx;head.y=nyy;
+            if(isPlayer)window._playerDir={...fd};
+            esc=true;break;
+          }
+        }
+        if(!esc)return{dead:true};
       }
     }
     if(head.x===oH.x&&head.y===oH.y){
@@ -429,7 +453,11 @@ function aiThink(i){
 function update(){
   gameTick++;
   if(playerBoost>0)playerBoost--;
-  for(let i=0;i<aiCount;i++)if(aiBoosts[i]>0)aiBoosts[i]--;
+  if(playerBlink>0)playerBlink--;
+  for(let i=0;i<aiCount;i++){
+    if(aiBoosts[i]>0)aiBoosts[i]--;
+    if(snakeBlink[i]>0)snakeBlink[i]--;
+  }
 
   // Player move
   const playerResult=moveSnake(0,window._playerDir||{x:1,y:0});
