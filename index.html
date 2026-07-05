@@ -122,7 +122,7 @@ const BOOST_DURATION=100,BOOST_TICK=70;
 
 const AI_NAMES=['Neon','Viper','Cobra','Fang','Byte','Pixel','Glitch','Spark'];
 
-function getBaseTick(s){return 200-s*11} // s=0→200ms, s=4→156ms, s=10→90ms
+function getBaseTick(s){return 200-s*11} // s=0 to 200ms, s=4 to 156ms, s=10 to 90ms
 let TICK,BASE_TICK;
 
 function calcGrid(){
@@ -415,12 +415,6 @@ function moveSnake(idx,dir){
   return{dead:false};
 }
 
-
-  for(let i=0;i<aiCount;i++){
-    const el=document.getElementById('aiScore'+i);
-    if(el)el.textContent=ais[i].score;
-  }
-}
 
 function aiThink(i){
   const head=snakes[i+1][0];const ai=ais[i];
