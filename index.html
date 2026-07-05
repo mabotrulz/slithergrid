@@ -352,10 +352,25 @@ function moveSnake(idx,dir){
         }else{ais[idx-1].score+=Math.floor(cut.length/3)+1;}
         if(os.length<3)return{cutKill:oi};
       }else{
-        const cutLen=1;
-        if(sd.length-cutLen<3)return{dead:true};
-        sd.splice(sd.length-cutLen,cutLen);
-        spawnParticles(sd[0].x,sd[0].y,'#ff3344',15,true);
+        // Try to dodge left or right instead of getting cut
+        const perps=[{x:dir.y,y:-dir.x},{x:-dir.y,y:dir.x}];
+        let dodged=false;
+        for(const pd of perps){
+          const nhx=(sd[0].x+pd.x+COLS)%COLS,nhy=(sd[0].y+pd.y+ROWS)%ROWS;
+          let blocked=false;
+          for(let si=0;si<snakes.length;si++)if(snakes[si].some(s=>s.x===nhx&&s.y===nhy)){blocked=true;break;}
+          if(!blocked&&!bombs.some(b=>b.x===nhx&&b.y===nhy)){
+            head.x=nhx;head.y=nhy;
+            if(isPlayer)window._playerDir={...pd};
+            dodged=true;break;
+          }
+        }
+        if(!dodged){
+          const cutLen=1;
+          if(sd.length-cutLen<3)return{dead:true};
+          sd.splice(sd.length-cutLen,cutLen);
+          spawnParticles(sd[0].x,sd[0].y,'#ff3344',15,true);
+        }
       }
     }
     if(head.x===oH.x&&head.y===oH.y){
