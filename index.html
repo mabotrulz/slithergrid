@@ -343,7 +343,6 @@ function moveSnake(idx,dir){
     const hitB=os.findIndex((s,i)=>i>0&&s.x===head.x&&s.y===head.y);
     if(hitB>0){
       const boost=isPlayer?playerBoost:aiBoosts[idx-1];
-      const oBoost=oi===0?playerBoost:aiBoosts[oi-1];
       if(boost>0){
         const cut=os.splice(hitB);rainbowParticles(cut);
         if(isPlayer){
@@ -353,8 +352,10 @@ function moveSnake(idx,dir){
         }else{ais[idx-1].score+=Math.floor(cut.length/3)+1;}
         if(os.length<3)return{cutKill:oi};
       }else{
-        if(oBoost>0&&oi!==0){}
-        return{dead:true};
+        const cutLen=Math.max(2,Math.floor(sd.length*0.35));
+        if(sd.length-cutLen<3)return{dead:true};
+        sd.splice(sd.length-cutLen,cutLen);
+        spawnParticles(sd[0].x,sd[0].y,'#ff3344',15,true);
       }
     }
     if(head.x===oH.x&&head.y===oH.y){
