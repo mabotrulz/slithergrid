@@ -122,7 +122,7 @@ const BOOST_DURATION=100,BOOST_TICK=70;
 
 const AI_NAMES=['Neon','Viper','Cobra','Fang','Byte','Pixel','Glitch','Spark'];
 
-function getBaseTick(s){return 200-s*11} // s=0 to 200ms, s=4 to 156ms, s=10 to 90ms
+function getBaseTick(s){return 100-s*5} // s=0 to 100ms, s=4 to 80ms, s=10 to 50ms
 let TICK,BASE_TICK;
 
 function calcGrid(){

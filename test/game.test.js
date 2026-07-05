@@ -130,6 +130,7 @@ function loadGame(dom) {
   
   try {
     dom.window.eval(scriptMatch[1]);
+    dom.window.eval("window.__snakes=snakes;window.__ais=ais;window.__food=food;window.__bombs=bombs;window.__score=score;window.__aiCount=aiCount;window.__playerBoost=playerBoost;window.__playerBlink=playerBlink;window.__snakeBlink=snakeBlink;window.__COLS=COLS;window.__ROWS=ROWS;window.__playerDir=_playerDir;window.__lastDodge=_lastDodge;window.__powerUps=powerUps;window.__gameTick=gameTick;window.__aiBoosts=aiBoosts;");
   } catch (e) {
     console.error('Script eval failed:', e.message);
     throw e;
@@ -140,7 +141,7 @@ function loadGame(dom) {
   // Make global game state accessible
   return {
     w,
-    init: () => { w.aiCount = 2; w.speedVal = 4; w.init(); },
+    init: () => { w.eval('aiCount=2;speedVal=4;init()'); w.__snakes = w.eval('snakes'); w.__ais = w.eval('ais'); w.__food = w.eval('food'); w.__score = w.eval('score'); w.__COLS = w.eval('COLS'); w.__ROWS = w.eval('ROWS'); w.__playerDir = w.eval('_playerDir'); },
     calcGrid: w.calcGrid,
     moveSnake: w.moveSnake,
     aiThink: w.aiThink,
@@ -148,68 +149,70 @@ function loadGame(dom) {
     startGame: w.startGame,
     
     // Expose state (use w.eval since game uses let not var)
-    get snakes() { return w.eval('snakes'); },
-    get ais() { return w.eval('ais'); },
-    get food() { return w.eval('food'); },
-    get bombs() { return w.eval('bombs'); },
-    get score() { return w.eval('score'); },
-    get aiScore() { return w.eval('aiScore'); },
-    get aiCount() { return w.eval('aiCount'); },
-    get running() { return w.eval('running'); },
-    get playerBoost() { return w.eval('playerBoost'); },
-    get playerBlink() { return w.eval('playerBlink'); },
-    get snakeBlink() { return w.eval('snakeBlink'); },
-    get COLS() { return w.eval('COLS'); },
-    get ROWS() { return w.eval('ROWS'); },
-    get playerDir() { return w.eval('_playerDir'); },
-    set playerDir(d) { w.eval('_playerDir = ' + JSON.stringify(d)); },
-    get lastDodge() { return w.eval('_lastDodge'); },
-    get powerUps() { return w.eval('powerUps'); },
+    get snakes() { return w.__snakes; },
+    get ais() { return w.__ais; },
+    get food() { return w.__food; },
+    get bombs() { return w.__bombs; },
+    get score() { return w.__score; },
+    get aiScore() { return w.__aiScore; },
+    get aiCount() { return w.__aiCount; },
+    get running() { return w.__running; },
+    get playerBoost() { return w.__playerBoost; },
+    get playerBlink() { return w.__playerBlink; },
+    get snakeBlink() { return w.__snakeBlink; },
+    get COLS() { return w.__COLS; },
+    get ROWS() { return w.__ROWS; },
+    get playerDir() { return w.__playerDir; },
+    set playerDir(d) { w.__playerDir = d; },
+    get lastDodge() { return w.__lastDodge; },
+    get powerUps() { return w.__powerUps; },
     
     // Helpers
     tick() {
-      w.gameTick++;
-      if (w.playerBoost > 0) w.playerBoost--;
-      for (let i = 0; i < w.aiCount; i++) {
-        if (w.aiBoosts[i] > 0) w.aiBoosts[i]--;
-        if (w.snakeBlink[i] > 0) w.snakeBlink[i]--;
-      }
-      if (w.playerBlink > 0) w.playerBlink--;
+      w.eval('gameTick++;if(playerBoost>0)playerBoost--;for(var i=0;i<aiCount;i++){if(aiBoosts[i]>0)aiBoosts[i]--;if(snakeBlink[i]>0)snakeBlink[i]--;}if(playerBlink>0)playerBlink--;');
+      w.__gameTick = w.eval('gameTick');
+      w.__playerBoost = w.eval('playerBoost');
+      w.__playerBlink = w.eval('playerBlink');
+      w.__snakeBlink = w.eval('snakeBlink');
+      w.__aiCount = w.eval('aiCount');
     },
     movePlayer() {
-      const r = w.moveSnake(0, w._playerDir);
-      if (r.dead) w.running = false;
-      return r;
+      const r = w.eval('moveSnake(0, _playerDir)');
+      if (r && r.dead) w.eval('running=false');
+      w.__snakes = w.eval('snakes');
+      w.__score = w.eval('score');
+      w.__playerBoost = w.eval('playerBoost');
+      return r || {};
     },
     moveAI(i) {
-      w.aiThink(i);
-      w.ais[i].dir = { ...w.ais[i].nextDir };
-      const r = w.moveSnake(i + 1, w.ais[i].dir);
-      if (r.dead) {
-        w.snakes.splice(i + 1, 1);
-        w.ais.splice(i, 1);
-        w.aiBoosts.splice(i, 1);
-        w.aiCount--;
-        if (w.snakeBlink.length > i) w.snakeBlink.splice(i, 1);
+      w.eval('aiThink('+i+')');
+      w.eval('ais['+i+'].dir={...ais['+i+'].nextDir}');
+      const r = w.eval('moveSnake('+(i+1)+', ais['+i+'].dir)');
+      if (r && r.dead) {
+        w.eval('snakes.splice('+(i+1)+',1);ais.splice('+i+',1);aiBoosts.splice('+i+',1);aiCount--;if(snakeBlink.length>'+i+')snakeBlink.splice('+i+',1)');
       }
-      return r;
+      w.__snakes = w.eval('snakes');
+      w.__ais = w.eval('ais');
+      w.__aiCount = w.eval('aiCount');
+      return r || {};
     },
     // Place a snake segment at a specific position for testing
     setSnake(idx, segments) {
-      w.snakes[idx] = segments;
+      w.eval('snakes['+idx+']='+JSON.stringify(segments));
+      w.__snakes = w.eval('snakes');
     },
     setFood(x, y) {
-      for (let i = 0; i < w.snakes.length; i++) {
-        if (w.snakes[i].some(s => s.x === x && s.y === y)) return false;
-      }
-      w.food = { x, y };
-      return true;
+      const ok = w.eval('!snakes.some(function(s){return s.some(function(t){return t.x==='+x+'&&t.y==='+y+'})})');
+      if (ok) { w.eval('food={x:'+x+',y:'+y+'}'); w.__food = w.eval('food'); }
+      return ok;
     },
     setBombs(bombList) {
-      w.bombs = bombList || [];
+      w.eval('bombs='+JSON.stringify(bombList||[]));
+      w.__bombs = w.eval('bombs');
     },
     setPowerUp(type, x, y) {
-      w.powerUps[type] = { x, y };
+      w.eval('powerUps.'+type+'={x:'+x+',y:'+y+'}');
+      w.__powerUps = w.eval('powerUps');
     }
   };
 }
@@ -504,13 +507,13 @@ describe('Speed configuration', () => {
   const w = game.w;
   
   w.speedVal = 0;
-  assertEq(w.getBaseTick(0), 200, 'Speed 0 = 200ms');
+  assertEq(w.getBaseTick(0), 100, 'Speed 0 = 100ms');
   
   w.speedVal = 4;
-  assertEq(w.getBaseTick(4), 156, 'Speed 4 = 156ms');
+  assertEq(w.getBaseTick(4), 80, 'Speed 4 = 80ms');
   
   w.speedVal = 10;
-  assertEq(w.getBaseTick(10), 90, 'Speed 10 = 90ms');
+  assertEq(w.getBaseTick(10), 50, 'Speed 10 = 50ms');
 });
 
 describe('Game initialization with different AI counts', () => {
