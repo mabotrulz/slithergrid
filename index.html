@@ -97,6 +97,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
     <span class="direction-hint" id="hint">W A S D · Arrows · Swipe</span>
     <div style="display:flex;align-items:center;gap:8px">
       <span style="color:#00ffaa;font-size:clamp(10px,2vw,13px);letter-spacing:1px;opacity:0.6">v2.1.0</span>
+      <span id="musicBtn" style="cursor:pointer;color:#555;font-size:clamp(12px,2.5vw,16px)" onclick="toggleMusic()" title="Toggle music">🔇</span>
       <button onclick="showSetup()">↻ New Game</button>
     </div>
   </div>
@@ -582,6 +583,17 @@ setTimeout(()=>{calcGrid();if(!running)draw()},100);
 document.getElementById('oppsVal').textContent=aiCount;
 updateSpeedLabel();
 showSetup();
+
+// Music
+const bgMusic=new Audio('assets/soundtrack.m4a');
+bgMusic.loop=true;let musicOn=false;
+function toggleMusic(){
+  musicOn=!musicOn;
+  if(musicOn){bgMusic.play().catch(()=>{});document.getElementById('musicBtn').textContent='🔊'}
+  else{bgMusic.pause();document.getElementById('musicBtn').textContent='🔇'}
+}
+// Try to resume music context on first click
+document.addEventListener('click',()=>{if(bgMusic.context&&bgMusic.context.state==='suspended')bgMusic.context.resume()});
 </script>
 </body>
 </html>
