@@ -482,9 +482,8 @@ function getTickInterval(){
 
 function gameTickFn(){
   if(!running)return;
-  update();draw();
-  clearInterval(gameLoop);
-  gameLoop=setInterval(gameTickFn,getTickInterval());
+  update();
+  if(running)draw();
 }
 
 let _playerDir={x:1,y:0};
@@ -500,8 +499,8 @@ function startGame(){
   setupScreen.classList.remove('active');
   if(gameLoop)clearInterval(gameLoop);
   init();window._playerDir={x:1,y:0};window._lastDodge=0;
-  running=true;TICK=BASE_TICK;
-  gameLoop=setInterval(gameTickFn,TICK);
+  running=true;
+  gameLoop=setInterval(gameTickFn,getBaseTick(speedVal));
   draw();
 }
 
