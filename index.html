@@ -83,8 +83,6 @@
 
     canvas {
       display: block;
-      width: 100%;
-      height: 100%;
       touch-action: none;
     }
 
@@ -193,7 +191,7 @@
 
 <div class="game-wrapper">
   <div class="header">
-    <h1>~ slithergrid ~</h1>
+    <h1>~ slithergrid ~ <span style="font-size:0.35em;color:#555;letter-spacing:1px;font-weight:300;">v1.5.0</span></h1>
     <div class="stats">
       <div class="stat">
         <div class="stat-label">You</div>
@@ -250,14 +248,14 @@
   let gameTick = 0;
 
   function calcGrid() {
-    const rect = canvas.getBoundingClientRect();
-    const w = rect.width;
-    const h = rect.height;
+    const parent = canvas.parentElement;
+    const w = parent.clientWidth;
+    const h = parent.clientHeight;
+    if (!w || !h) return;
     const cellSize = Math.max(10, Math.floor(Math.min(w, h) / GRID));
     COLS = Math.floor(w / cellSize);
     ROWS = Math.floor(h / cellSize);
     CELL = Math.min(w / COLS, h / ROWS);
-    // Round to avoid sub-pixel gaps
     canvas.width = Math.round(COLS * CELL);
     canvas.height = Math.round(ROWS * CELL);
   }
@@ -743,6 +741,10 @@
   // Start
   init();
   draw();
+
+  // Reflow on load (fixes initial sizing race)
+  window.addEventListener('load', () => { calcGrid(); if (!running) draw(); });
+  setTimeout(() => { calcGrid(); if (!running) draw(); }, 100);
 </script>
 </body>
 </html>
