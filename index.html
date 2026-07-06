@@ -115,7 +115,7 @@ const RAINBOW=()=>`hsl(${(Date.now()/20+Math.random()*360)%360},100%,60%)`;
 const RAINBOW_COLORS=['#ff0000','#ff8800','#ffff00','#00ff00','#0088ff','#8800ff','#ff00ff'];
 
 let aiCount=2,speedVal=4;
-let snakes=[],ais=[],food,bombs,particles=[],gameTick=0,gameLoop,running=false;
+let snakes=[],ais=[],food=null,bombs=[],particles=[],gameTick=0,gameLoop,running=false;
 let powerUps={rainbow:null,yellow:null};
 let playerBoost=0,aiBoosts=[],playerBlink=0,snakeBlink=[];
 let powerUpTimers={rainbow:0,yellow:0};playerBlink=0;snakeBlink=[];
@@ -389,23 +389,26 @@ function moveSnake(idx,dir){
       const aiDir=idx===0&&oi>0?ais[oi-1]?.dir:null;
       if(isPlayer&&aiDir){
         const dirs=[{x:1,y:0},{x:-1,y:0},{x:0,y:1},{x:0,y:-1}];
+        let aiWillDie=false;
         // Does AI head toward player?
         if(oH.x+aiDir.x===sd[0].x&&oH.y+aiDir.y===sd[0].y){
-          if(snakes[oi].length<4)return{cutKill:oi};
-          snakes[oi].splice(snakes[oi].length-1,1);
-          let aiEsc=false;
-          for(const fd of dirs){
-            if(fd.x===-aiDir.x&&fd.y===-aiDir.y)continue;
-            const nx=(oH.x+fd.x+COLS)%COLS,ny=(oH.y+fd.y+ROWS)%ROWS;
-            let bl=false;
-            for(let si=0;si<snakes.length;si++)if(snakes[si].some(s=>s.x===nx&&s.y===ny)){bl=true;break;}
-            if(!bl&&!bombs.some(b=>b.x===nx&&b.y===ny)){
-              snakes[oi][0].x=nx;snakes[oi][0].y=ny;
-              ais[oi-1].dir={...fd};
-              aiEsc=true;break;
+          if(snakes[oi].length<4)aiWillDie=true;
+          else{
+            snakes[oi].splice(snakes[oi].length-1,1);
+            let aiEsc=false;
+            for(const fd of dirs){
+              if(fd.x===-aiDir.x&&fd.y===-aiDir.y)continue;
+              const nx=(oH.x+fd.x+COLS)%COLS,ny=(oH.y+fd.y+ROWS)%ROWS;
+              let bl=false;
+              for(let si=0;si<snakes.length;si++)if(snakes[si].some(s=>s.x===nx&&s.y===ny)){bl=true;break;}
+              if(!bl&&!bombs.some(b=>b.x===nx&&b.y===ny)){
+                snakes[oi][0].x=nx;snakes[oi][0].y=ny;
+                ais[oi-1].dir={...fd};
+                aiEsc=true;break;
+              }
             }
+            if(!aiEsc)return{dead:true};
           }
-          if(!aiEsc)return{dead:true};
         }
         // Does player head toward AI?
         if(sd[0].x+dir.x===oH.x&&sd[0].y+dir.y===oH.y){
@@ -427,6 +430,7 @@ function moveSnake(idx,dir){
           }
           if(!plEsc)return{dead:true};
         }
+        if(aiWillDie)return{cutKill:oi};
       }
     }
   }
