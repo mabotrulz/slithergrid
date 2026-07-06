@@ -271,7 +271,7 @@ describe('AI config', () => {
 
 describe('Speed', () => {
   assertEq(w.getBaseTick(0), 170, 'speed 0');
-  assertEq(w.getBaseTick(4), 130, 'speed 4');
+  assertEq(w.getBaseTick(4), 156, 'speed 4 = 156ms (20% slower)');
   assertEq(w.getBaseTick(10), 70, 'speed 10');
 });
 
