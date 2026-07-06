@@ -385,13 +385,12 @@ function moveSnake(idx,dir){
       }
     }
     if(head.x===oH.x&&head.y===oH.y){
-      // Head-on — whichever snake's direction points at the other, cuts 1 and redirects
+      // Head-on — each snake that is heading toward the other cuts 1 and redirects
       const aiDir=idx===0&&oi>0?ais[oi-1]?.dir:null;
       if(isPlayer&&aiDir){
         const dirs=[{x:1,y:0},{x:-1,y:0},{x:0,y:1},{x:0,y:-1}];
-        const aiFacesPlayer=oH.x+aiDir.x===sd[0].x&&oH.y+aiDir.y===sd[0].y;
-        if(aiFacesPlayer){
-          // AI also heading toward player — AI cuts 1 and redirects first
+        // Does AI head toward player?
+        if(oH.x+aiDir.x===sd[0].x&&oH.y+aiDir.y===sd[0].y){
           if(snakes[oi].length<4)return{cutKill:oi};
           snakes[oi].splice(snakes[oi].length-1,1);
           let aiEsc=false;
@@ -408,24 +407,26 @@ function moveSnake(idx,dir){
           }
           if(!aiEsc)return{dead:true};
         }
-        // Player is always heading toward AI's head — cut 1 and redirect
-        if(sd.length<4)return{dead:true};
-        sd.splice(sd.length-1,1);
-        sfxCut();spawnParticles(sd[0].x,sd[0].y,'#ff3344',15,true);
-        let plEsc=false;
-        for(const fd of dirs){
-          if(fd.x===-dir.x&&fd.y===-dir.y)continue;
-          const nx=(sd[0].x+fd.x+COLS)%COLS,ny=(sd[0].y+fd.y+ROWS)%ROWS;
-          let bl=false;
-          for(let si=0;si<snakes.length;si++)if(snakes[si].some(s=>s.x===nx&&s.y===ny)){bl=true;break;}
-          if(!bl&&!bombs.some(b=>b.x===nx&&b.y===ny)){
-            head.x=nx;head.y=ny;
-            window._playerDir={...fd};
-            window._lastDodge=1;
-            plEsc=true;break;
+        // Does player head toward AI?
+        if(sd[0].x+dir.x===oH.x&&sd[0].y+dir.y===oH.y){
+          if(sd.length<4)return{dead:true};
+          sd.splice(sd.length-1,1);
+          sfxCut();spawnParticles(sd[0].x,sd[0].y,'#ff3344',15,true);
+          let plEsc=false;
+          for(const fd of dirs){
+            if(fd.x===-dir.x&&fd.y===-dir.y)continue;
+            const nx=(sd[0].x+fd.x+COLS)%COLS,ny=(sd[0].y+fd.y+ROWS)%ROWS;
+            let bl=false;
+            for(let si=0;si<snakes.length;si++)if(snakes[si].some(s=>s.x===nx&&s.y===ny)){bl=true;break;}
+            if(!bl&&!bombs.some(b=>b.x===nx&&b.y===ny)){
+              head.x=nx;head.y=ny;
+              window._playerDir={...fd};
+              window._lastDodge=1;
+              plEsc=true;break;
+            }
           }
+          if(!plEsc)return{dead:true};
         }
-        if(!plEsc)return{dead:true};
       }
     }
   }
