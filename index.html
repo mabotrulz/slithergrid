@@ -366,21 +366,8 @@ function moveSnake(idx,dir){
         if(sd.length===3){
           if(isPlayer)playerBlink=20;else snakeBlink[idx-1]=20;
         }
-        // Try to escape to any free adjacent cell
-        const freeDirs=[{x:1,y:0},{x:-1,y:0},{x:0,y:1},{x:0,y:-1}];
-        let esc=false;
-        for(const fd of freeDirs){
-          if(fd.x===-dir.x&&fd.y===-dir.y)continue;
-          const nxx=(head.x+fd.x+COLS)%COLS,nyy=(head.y+fd.y+ROWS)%ROWS;
-          let bl=false;
-          for(let si=0;si<snakes.length;si++)if(snakes[si].some(s=>s.x===nxx&&s.y===nyy)){bl=true;break;}
-          if(!bl&&!bombs.some(b=>b.x===nxx&&b.y===nyy)){
-            head.x=nxx;head.y=nyy;
-            if(isPlayer)window._playerDir={...fd};
-            esc=true;break;
-          }
-        }
-        if(!esc)return{dead:true};
+        // Lose 1 segment and stay put — don't move into the occupied cell
+        head.x=sd[0].x;head.y=sd[0].y;
       }
     }
     if(head.x===oH.x&&head.y===oH.y){
@@ -401,7 +388,7 @@ function moveSnake(idx,dir){
   const hb=bombs.find(b=>b.x===head.x&&b.y===head.y);
   if(hb){
     spawnParticles(hb.x,hb.y,'#ff3344',25,true);spawnParticles(hb.x,hb.y,'#ffcc00',15,true);
-    bombs=bombs.filter(b=>b!==hb);const cl=Math.max(2,Math.floor(sd.length*0.35));
+    bombs=bombs.filter(b=>b!==hb);const cl=1;
     if(sd.length-cl<3)return{dead:true};sd.splice(sd.length-cl,cl);
   }
   if(powerUps.rainbow&&head.x===powerUps.rainbow.x&&head.y===powerUps.rainbow.y){
@@ -419,7 +406,7 @@ function moveSnake(idx,dir){
       if(score>hs){localStorage.setItem('slithergrid_high',score);highEl.textContent=score}}
     else{ais[idx-1].score++;}
     sfxEat();spawnParticles(food.x,food.y,'#00ffaa',20);spawnFood();
-  }else if(!hb)sd.pop();
+  }else sd.pop();
   if(window._lastDodge){const loseD=sd.pop();window._lastDodge=0;if(sd.length<3)return{dead:true};}
   return{dead:false};
 }
