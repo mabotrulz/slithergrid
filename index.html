@@ -359,15 +359,21 @@ function moveSnake(idx,dir){
           if(oi===0)playerBlink=20;else{snakeBlink[oi-1]=20;}
         }
       }else{
-        const cutLen=1;
-        if(sd.length-cutLen<3)return{dead:true};
-        sd.splice(sd.length-cutLen,cutLen);
-        sfxCut();spawnParticles(sd[0].x,sd[0].y,'#ff3344',15,true);
-        if(sd.length===3){
-          if(isPlayer)playerBlink=20;else snakeBlink[idx-1]=20;
+        // Intended direction blocked — try other free directions from current position
+        const freeDirs=[{x:1,y:0},{x:-1,y:0},{x:0,y:1},{x:0,y:-1}];
+        let found=false;
+        for(const fd of freeDirs){
+          if(fd.x===-dir.x&&fd.y===-dir.y)continue;
+          const nx=(sd[0].x+fd.x+COLS)%COLS,ny=(sd[0].y+fd.y+ROWS)%ROWS;
+          let blocked=false;
+          for(let si=0;si<snakes.length;si++)if(snakes[si].some(s=>s.x===nx&&s.y===ny)){blocked=true;break;}
+          if(!blocked&&!bombs.some(b=>b.x===nx&&b.y===ny)){
+            head.x=nx;head.y=ny;
+            if(isPlayer)window._playerDir={...fd};
+            found=true;break;
+          }
         }
-        // Lose 1 segment and stay put — don't move into the occupied cell
-        head.x=sd[0].x;head.y=sd[0].y;
+        if(!found)return{dead:true};
       }
     }
     if(head.x===oH.x&&head.y===oH.y){
@@ -447,7 +453,29 @@ function update(){
     if(snakeBlink[i]>0)snakeBlink[i]--;
   }
 
-  // Player move
+  // AI moves first — resolve AI before player so player can react to where AI ends up
+  for(let i=aiCount-1;i>=0;i--){
+    aiThink(i);
+    ais[i].dir={...ais[i].nextDir};
+    const r=moveSnake(i+1,ais[i].dir);
+    if(r.dead){
+      snakes.splice(i+1,1);
+      ais.splice(i,1);aiBoosts.splice(i,1);
+      aiCount--;
+      if(aiCount===0){endGame('🏆 You Win!',score,'All AI eliminated!');return}
+    }else if(r.cutKill!==undefined){
+      const ck=r.cutKill;
+      if(ck===0){endGame('💀 You Died',score,'An AI cut through you!');return}
+      snakes.splice(ck,1);
+      const aiDead=ck-1;
+      if(aiDead>=0&&aiDead<ais.length){ais.splice(aiDead,1);aiBoosts.splice(aiDead,1)}
+      aiCount--;
+      if(aiCount===0){endGame('🏆 You Win!',score,'All AI eliminated!');return}
+      if(ck<=i+1)i--;
+    }
+  }
+
+  // Player moves second
   const playerResult=moveSnake(0,window._playerDir||{x:1,y:0});
   if(playerResult.dead){endGame('💀 You Died',score,'One of the AI got you!');return}
   if(playerResult.cutKill!==undefined){
@@ -457,32 +485,6 @@ function update(){
     if(aiReal>=0&&aiReal<ais.length){ais.splice(aiReal,1);aiBoosts.splice(aiReal,1)}
     aiCount--;
       if(aiCount===0){endGame('🏆 You Win!',score,'All AI snakes eliminated!');return}
-  }
-
-  // AI
-  for(let i=aiCount-1;i>=0;i--){
-    aiThink(i);
-    ais[i].dir={...ais[i].nextDir};
-    const r=moveSnake(i+1,ais[i].dir);
-    if(r.dead){
-      // This AI died
-      snakes.splice(i+1,1);
-      ais.splice(i,1);aiBoosts.splice(i,1);
-      aiCount--;
-      // Re-process this index since arrays shifted
-      if(aiCount===0){endGame('🏆 You Win!',score,'All AI eliminated!');return}
-        }else if(r.cutKill!==undefined){
-      // This AI killed another snake via boost
-      const ck=r.cutKill;
-      if(ck===0){endGame('💀 You Died',score,'An AI cut through you!');return}
-      snakes.splice(ck,1);
-      const aiDead=ck-1;
-      if(aiDead>=0&&aiDead<ais.length){ais.splice(aiDead,1);aiBoosts.splice(aiDead,1)}
-      aiCount--;
-          if(aiCount===0){endGame('🏆 You Win!',score,'All AI eliminated!');return}
-      // Adjust loop counter since we removed an element
-      if(ck<=i+1)i--;
-    }
   }
 
   if(gameTick%60===0)spawnBomb();
