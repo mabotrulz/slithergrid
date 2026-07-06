@@ -359,7 +359,15 @@ function moveSnake(idx,dir){
           if(oi===0)playerBlink=20;else{snakeBlink[oi-1]=20;}
         }
       }else{
-        // Intended direction blocked — try other free directions from current position
+        // Body hit — cut 1 from tail
+        const cutLen=1;
+        if(sd.length-cutLen<3)return{dead:true};
+        sd.splice(sd.length-cutLen,cutLen);
+        sfxCut();spawnParticles(sd[0].x,sd[0].y,'#ff3344',15,true);
+        if(sd.length===3){
+          if(isPlayer)playerBlink=20;else snakeBlink[idx-1]=20;
+        }
+        // Try to redirect to a free adjacent cell
         const freeDirs=[{x:1,y:0},{x:-1,y:0},{x:0,y:1},{x:0,y:-1}];
         let found=false;
         for(const fd of freeDirs){
@@ -377,18 +385,54 @@ function moveSnake(idx,dir){
       }
     }
     if(head.x===oH.x&&head.y===oH.y){
-      const perps=[{x:dir.y,y:-dir.x},{x:-dir.y,y:dir.x}];
-      for(const pd of perps){
-        const nhx=(sd[0].x+pd.x+COLS)%COLS,nhy=(sd[0].y+pd.y+ROWS)%ROWS;
-        let blocked=false;
-        for(let si=0;si<snakes.length;si++)if(snakes[si].some(s=>s.x===nhx&&s.y===nhy)){blocked=true;break;}
-        if(!blocked&&!bombs.some(b=>b.x===nhx&&b.y===nhy)){
-          head.x=nhx;head.y=nhy;
-          if(isPlayer)window._playerDir={...pd};
-          window._lastDodge=1;break;
+      // Opposite-direction head-on: AI dodges first, then player
+      const aiDir=idx===0&&oi>0?ais[oi-1]?.dir:null;
+      if(isPlayer&&aiDir&&dir.x===-aiDir.x&&dir.y===-aiDir.y){
+        // AI dodges first
+        const dirs=[{x:1,y:0},{x:-1,y:0},{x:0,y:1},{x:0,y:-1}];
+        let aiEsc=false;
+        for(const fd of dirs){
+          if(fd.x===-aiDir.x&&fd.y===-aiDir.y)continue;
+          const nx=(oH.x+fd.x+COLS)%COLS,ny=(oH.y+fd.y+ROWS)%ROWS;
+          let bl=false;
+          for(let si=0;si<snakes.length;si++)if(snakes[si].some(s=>s.x===nx&&s.y===ny)){bl=true;break;}
+          if(!bl&&!bombs.some(b=>b.x===nx&&b.y===ny)){
+            snakes[oi][0].x=nx;snakes[oi][0].y=ny;
+            ais[oi-1].dir={...fd};
+            aiEsc=true;break;
+          }
         }
+        if(!aiEsc)return{dead:true};
+        // Then player dodges
+        let plEsc=false;
+        for(const fd of dirs){
+          if(fd.x===-dir.x&&fd.y===-dir.y)continue;
+          const nx=(sd[0].x+fd.x+COLS)%COLS,ny=(sd[0].y+fd.y+ROWS)%ROWS;
+          let bl=false;
+          for(let si=0;si<snakes.length;si++)if(snakes[si].some(s=>s.x===nx&&s.y===ny)){bl=true;break;}
+          if(!bl&&!bombs.some(b=>b.x===nx&&b.y===ny)){
+            head.x=nx;head.y=ny;
+            window._playerDir={...fd};
+            window._lastDodge=1;
+            plEsc=true;break;
+          }
+        }
+        if(!plEsc)return{dead:true};
+      }else{
+        // Non-opposite head-on — try perpendicular dodge
+        const perps=[{x:dir.y,y:-dir.x},{x:-dir.y,y:dir.x}];
+        for(const pd of perps){
+          const nhx=(sd[0].x+pd.x+COLS)%COLS,nhy=(sd[0].y+pd.y+ROWS)%ROWS;
+          let blocked=false;
+          for(let si=0;si<snakes.length;si++)if(snakes[si].some(s=>s.x===nhx&&s.y===nhy)){blocked=true;break;}
+          if(!blocked&&!bombs.some(b=>b.x===nhx&&b.y===nhy)){
+            head.x=nhx;head.y=nhy;
+            if(isPlayer)window._playerDir={...pd};
+            window._lastDodge=1;break;
+          }
+        }
+        if(!window._lastDodge)return{dead:true};
       }
-      if(!window._lastDodge)return{dead:true};
     }
   }
   const hb=bombs.find(b=>b.x===head.x&&b.y===head.y);
