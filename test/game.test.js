@@ -36,9 +36,11 @@ const dom = new JSDOM(html, {
     win.clearInterval = () => {};
     win.AudioContext = class {
       constructor() {
-        this.currentTime=0;this.destination={};
-        this.createOscillator=()=>({type:null,frequency:{value:0},connect:()=>this.createGain(),start:()=>{},stop:()=>{}});
-        this.createGain=()=>({gain:{value:0,exponentialRampToValueAtTime:()=>{}},connect:()=>{}});
+        this.currentTime = 0;
+        this.destination = {};
+        const gain = { gain: { value: 0, exponentialRampToValueAtTime: () => {} }, connect: () => {} };
+        this.createOscillator = () => ({ type: null, frequency: { value: 0 }, connect: () => gain, start: () => {}, stop: () => {} });
+        this.createGain = () => gain;
       }
     };
     win.Audio=class{play(){return Promise.resolve();}pause(){}};

@@ -424,7 +424,6 @@ function moveSnake(idx,dir){
             if(!bl&&!bombs.some(b=>b.x===nx&&b.y===ny)){
               head.x=nx;head.y=ny;
               window._playerDir={...fd};
-              window._lastDodge=1;
               plEsc=true;break;
             }
           }
