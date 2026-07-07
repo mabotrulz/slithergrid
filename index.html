@@ -380,7 +380,6 @@ function moveSnake(idx,dir){
           for(let si=0;si<snakes.length;si++)if(snakes[si].some(s=>s.x===nx&&s.y===ny)){blocked=true;break;}
           if(!blocked&&!bombs.some(b=>b.x===nx&&b.y===ny)){
             head.x=nx;head.y=ny;
-            if(isPlayer)window._playerDir={...fd};
             found=true;break;
           }
         }
