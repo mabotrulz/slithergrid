@@ -430,6 +430,9 @@ function moveSnake(idx,dir){
           if(!plEsc)return{dead:true};
         }
         if(aiWillDie)return{cutKill:oi};
+      }else if(!isPlayer&&oi===0&&ais[idx-1]){
+        // AI vs player head-on — AI heads toward player → AI can't move into player
+        head.x=sd[0].x;head.y=sd[0].y; // Stay put, don't move into player
       }
     }
   }
