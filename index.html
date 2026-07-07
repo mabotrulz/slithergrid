@@ -338,7 +338,10 @@ function moveSnake(idx,dir){
   const sd=snakes[idx];const isPlayer=idx===0;
   const head={x:(sd[0].x+dir.x+COLS)%COLS,y:(sd[0].y+dir.y+ROWS)%ROWS};
   window._lastDodge=0;window._deathReason=null;
-  if(sd.some(s=>s.x===head.x&&s.y===head.y)){window._deathReason='self';return{dead:true};}
+  if(sd.some(s=>s.x===head.x&&s.y===head.y)){
+    window._deathReason='self_'+head.x+','+head.y+'←'+dir.x+','+dir.y+'_body:'+sd.map(s=>s.x+','+s.y).join('|');
+    return{dead:true};
+  }
   for(let oi=0;oi<snakes.length;oi++){
     if(oi===idx)continue;
     const os=snakes[oi];const oH=os[0];
