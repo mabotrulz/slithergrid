@@ -95,6 +95,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
   </div>
   <div class="controls">
     <span class="direction-hint" id="hint">W A S D · Arrows · Swipe</span>
+    <span style="color:#555;font-size:clamp(10px,2vw,12px);letter-spacing:1px" id="dirIndicator">→</span>
     <div style="display:flex;align-items:center;gap:8px">
       <span style="color:#00ffaa;font-size:clamp(10px,2vw,13px);letter-spacing:1px;opacity:0.6">v2.1.0</span>
       <span id="musicBtn" style="cursor:pointer;color:#555;font-size:clamp(12px,2.5vw,16px)" onclick="toggleMusic()" title="Toggle music">🔇</span>
@@ -552,6 +553,10 @@ function getTickInterval(){
 function gameTickFn(){
   if(!running)return;
   update();
+  // Update direction indicator
+  const dd=window._playerDir||{x:1,y:0};
+  const arrows={'-1,0':'←','1,0':'→','0,-1':'↑','0,1':'↓'};
+  document.getElementById('dirIndicator').textContent=arrows[dd.x+','+dd.y]||'?';
   if(running)draw();
 }
 
