@@ -337,8 +337,8 @@ function rainbowParticles(segs){
 function moveSnake(idx,dir){
   const sd=snakes[idx];const isPlayer=idx===0;
   const head={x:(sd[0].x+dir.x+COLS)%COLS,y:(sd[0].y+dir.y+ROWS)%ROWS};
-  window._lastDodge=0;
-  if(sd.some(s=>s.x===head.x&&s.y===head.y))return{dead:true};
+  window._lastDodge=0;window._deathReason=null;
+  if(sd.some(s=>s.x===head.x&&s.y===head.y)){window._deathReason='self';return{dead:true};}
   for(let oi=0;oi<snakes.length;oi++){
     if(oi===idx)continue;
     const os=snakes[oi];const oH=os[0];
@@ -361,7 +361,7 @@ function moveSnake(idx,dir){
       }else{
         // Body hit — cut 1 from tail
         const cutLen=1;
-        if(sd.length-cutLen<3)return{dead:true};
+        if(sd.length-cutLen<3){window._deathReason='body_cut_'+sd.length;return{dead:true};}
         sd.splice(sd.length-cutLen,cutLen);
         sfxCut();spawnParticles(sd[0].x,sd[0].y,'#ff3344',15,true);
         if(sd.length===3){
@@ -381,7 +381,7 @@ function moveSnake(idx,dir){
             found=true;break;
           }
         }
-        if(!found)return{dead:true};
+        if(!found){window._deathReason='body_no_escape';return{dead:true};}
       }
     }
     if(head.x===oH.x&&head.y===oH.y){
@@ -407,12 +407,12 @@ function moveSnake(idx,dir){
                 aiEsc=true;break;
               }
             }
-            if(!aiEsc)return{dead:true};
+            if(!aiEsc){window._deathReason='headon_ai_trapped';return{dead:true};}
           }
         }
         // Does player head toward AI?
         if(sd[0].x+dir.x===oH.x&&sd[0].y+dir.y===oH.y){
-          if(sd.length<4)return{dead:true};
+          if(sd.length<4){window._deathReason='headon_player_cut_'+sd.length;return{dead:true};}
           sd.splice(sd.length-1,1);
           sfxCut();spawnParticles(sd[0].x,sd[0].y,'#ff3344',15,true);
           let plEsc=false;
@@ -427,7 +427,7 @@ function moveSnake(idx,dir){
               plEsc=true;break;
             }
           }
-          if(!plEsc)return{dead:true};
+          if(!plEsc){window._deathReason='headon_player_no_escape';return{dead:true};}
         }
         if(aiWillDie)return{cutKill:oi};
       }else if(!isPlayer&&oi===0&&ais[idx-1]){
@@ -443,7 +443,7 @@ function moveSnake(idx,dir){
   if(hb){
     spawnParticles(hb.x,hb.y,'#ff3344',25,true);spawnParticles(hb.x,hb.y,'#ffcc00',15,true);
     bombs=bombs.filter(b=>b!==hb);const cl=1;
-    if(sd.length-cl<3)return{dead:true};sd.splice(sd.length-cl,cl);
+    if(sd.length-cl<3){window._deathReason='bomb_cut_'+sd.length;return{dead:true};}sd.splice(sd.length-cl,cl);
   }
   if(powerUps.rainbow&&head.x===powerUps.rainbow.x&&head.y===powerUps.rainbow.y){
     powerUps.rainbow=null;sfxBoost();spawnParticles(head.x,head.y,'#ffd700',25,true);
@@ -461,7 +461,7 @@ function moveSnake(idx,dir){
     else{ais[idx-1].score++;}
     sfxEat();spawnParticles(food.x,food.y,'#00ffaa',20);spawnFood();
   }else sd.pop();
-  if(window._lastDodge){const loseD=sd.pop();window._lastDodge=0;if(sd.length<3)return{dead:true};}
+  if(window._lastDodge){const loseD=sd.pop();window._lastDodge=0;if(sd.length<3){window._deathReason='dodge_pop_'+sd.length;return{dead:true};}}
   return{dead:false};
 }
 function aiThink(i){
@@ -558,7 +558,8 @@ let _playerDir={x:1,y:0};
 function endGame(title,sc,msg){
   running=false;clearInterval(gameLoop);
   overlayTitle.textContent=title;finalScore.textContent=sc;
-  finalMsg.textContent=String(msg||'Game over');
+  const reason=window._deathReason||'unknown';
+  finalMsg.textContent=String(msg||'Game over')+' ['+reason+']';
   setTimeout(()=>{overlay.classList.add('active')},800);
   if(title.includes('Win'))sfxWin();else sfxDeath();
 }
