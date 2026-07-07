@@ -112,10 +112,19 @@ function assertNeq(a, e, m) { if (a !== e) passed++; else { failed++; console.lo
 
 describe('Self collision', () => {
   testInit();
-  w.eval('snakes[0]=[{x:5,y:5},{x:4,y:5},{x:3,y:5},{x:2,y:5}]');
-  w.eval('window._playerDir={x:-1,y:0};gameTick++;');
+  ctx('snakes[0]=[{x:5,y:5},{x:4,y:5},{x:3,y:5},{x:2,y:5}]');
+  ctx('window._playerDir={x:-1,y:0};gameTick++;');
   const r = ctx('moveSnake(0,window._playerDir)');
-  assert(r.dead, 'Self collision kills');
+  assert(!r.dead, 'Self collision at size 4 → cut 1 → survive');
+  assertEq(ctx('snakes[0].length'), 3, 'Lost 1 segment from self collision');
+});
+
+describe('Self collision — die at size 3', () => {
+  testInit();
+  ctx('snakes[0]=[{x:5,y:5},{x:4,y:5},{x:3,y:5}]');
+  ctx('window._playerDir={x:-1,y:0};gameTick++;');
+  const r = ctx('moveSnake(0,window._playerDir)');
+  assert(r.dead, 'Self collision at size 3 → cut 1 → size 2 → die');
 });
 
 // ===== BODY COLLISION =====

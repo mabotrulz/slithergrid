@@ -116,7 +116,7 @@ const GRID=15; let COLS,ROWS,CELL;
 const RAINBOW=()=>`hsl(${(Date.now()/20+Math.random()*360)%360},100%,60%)`;
 const RAINBOW_COLORS=['#ff0000','#ff8800','#ffff00','#00ff00','#0088ff','#8800ff','#ff00ff'];
 
-let aiCount=2,speedVal=4;
+let aiCount=2,aiCountConfig=2,speedVal=4;
 let snakes=[],ais=[],food=null,bombs=[],particles=[],gameTick=0,gameLoop,running=false;
 let powerUps={rainbow:null,yellow:null};
 let playerBoost=0,aiBoosts=[],playerBlink=0,snakeBlink=[];
@@ -225,15 +225,17 @@ function getColor(i,len,isAi,idx){
 function drawSnake(snakeData,dir,isAi,idx,blink){
   const len=snakeData.length;const col=isAi?'#ff6b9d':'#00ffaa';
   const glowCol=isAi?'rgba(255,107,157,0.1)':'rgba(0,255,170,0.1)';
+  const boosted=isAi?(aiBoosts[idx]||0)>0:playerBoost>0;
   for(let i=len-1;i>=0;i--){
     const s=snakeData[i],isH=i===0,pad=isH?1:2,sz=CELL-pad*2;
     if(isH){
       const hx=s.x*CELL+CELL/2,hy=s.y*CELL+CELL/2;
       const hg=ctx.createRadialGradient(hx,hy,0,hx,hy,CELL);
-      hg.addColorStop(0,glowCol);hg.addColorStop(1,'rgba(0,0,0,0)');
+      const boostGlow=boosted?`hsla(${(Date.now()/10)%360},100%,60%,0.12)`:null;
+      hg.addColorStop(0,boostGlow||glowCol);hg.addColorStop(1,'rgba(0,0,0,0)');
       ctx.fillStyle=hg;ctx.fillRect(s.x*CELL-CELL/2,s.y*CELL-CELL/2,CELL*2,CELL*2);
     }
-    const color=getColor(i,len,isAi,idx);
+    const color=boosted?`hsl(${(Date.now()/10+i*30+gameTick*3)%360},100%,60%)`:getColor(i,len,isAi,idx);
     ctx.fillStyle=color;ctx.shadowColor=isH?col:color;ctx.shadowBlur=isH?14:7;
     const cx=s.x*CELL+pad,cy=s.y*CELL+pad;
     if(isH){ctx.beginPath();ctx.roundRect(cx,cy,sz,sz,4);ctx.fill()}
@@ -340,8 +342,28 @@ function moveSnake(idx,dir){
   const head={x:(sd[0].x+dir.x+COLS)%COLS,y:(sd[0].y+dir.y+ROWS)%ROWS};
   window._lastDodge=0;window._deathReason=null;
   if(sd.some(s=>s.x===head.x&&s.y===head.y)){
+    // Self-collision — cut 1 and redirect like body hit. Die only if < 3 remains.
     window._deathReason='self_'+head.x+','+head.y+'←'+dir.x+','+dir.y+'_body:'+sd.map(s=>s.x+','+s.y).join('|');
-    return{dead:true};
+    const cutLen=1;
+    if(sd.length-cutLen<3)return{dead:true};
+    sd.splice(sd.length-cutLen,cutLen);
+    if(sd.length===3){
+      if(isPlayer)playerBlink=20;else snakeBlink[idx-1]=20;
+    }
+    const freeDirs=[{x:1,y:0},{x:-1,y:0},{x:0,y:1},{x:0,y:-1}];
+    let found=false;
+    for(const fd of freeDirs){
+      if(fd.x===-dir.x&&fd.y===-dir.y)continue;
+      const nx=(sd[0].x+fd.x+COLS)%COLS,ny=(sd[0].y+fd.y+ROWS)%ROWS;
+      let blocked=false;
+      for(let si=0;si<snakes.length;si++)if(snakes[si].some(s=>s.x===nx&&s.y===ny)){blocked=true;break;}
+      if(!blocked&&!bombs.some(b=>b.x===nx&&b.y===ny)){
+        head.x=nx;head.y=ny;
+        if(isPlayer)window._playerDir={...fd};
+        found=true;break;
+      }
+    }
+    if(!found)return{dead:true};
   }
   for(let oi=0;oi<snakes.length;oi++){
     if(oi===idx)continue;
@@ -566,6 +588,7 @@ function endGame(title,sc,msg){
   running=false;clearInterval(gameLoop);
   overlayTitle.textContent=title;finalScore.textContent=sc;
   finalMsg.textContent=String(msg||'Game over');
+  overlayTitle.classList.toggle('winner',title.includes('Win'));
   setTimeout(()=>{overlay.classList.add('active')},800);
   if(title.includes('Win'))sfxWin();else sfxDeath();
 }
@@ -604,7 +627,7 @@ function copyDebug(){
 function startGame(){
   setupScreen.classList.remove('active');
   if(gameLoop)clearInterval(gameLoop);
-  init();window._playerDir={x:1,y:0};window._lastDodge=0;
+  aiCount=aiCountConfig;init();window._playerDir={x:1,y:0};window._lastDodge=0;
   running=true;
   gameLoop=setInterval(gameTickFn,getBaseTick(speedVal));
   draw();
@@ -619,6 +642,7 @@ function showSetup(){
 
 function adjOpps(delta){
   aiCount=Math.max(1,Math.min(8,aiCount+delta));
+  aiCountConfig=aiCount;
   document.getElementById('oppsVal').textContent=aiCount;
 }
 
