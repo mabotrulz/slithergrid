@@ -64,6 +64,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
       <div class="final-label">points</div>
       <div class="sub" id="finalMsg"></div>
       <button onclick="showSetup()">↻ Play Again</button>
+      <button id="copyDebugBtn" onclick="copyDebug()" style="margin-top:8px;font-size:clamp(9px,2vw,11px);border-color:#555;color:#888;padding:4px 12px">📋 Copy Debug</button>
     </div>
     <div class="setup-screen active" id="setupScreen">
       <div class="setup-box">
@@ -565,10 +566,40 @@ let _playerDir={x:1,y:0};
 function endGame(title,sc,msg){
   running=false;clearInterval(gameLoop);
   overlayTitle.textContent=title;finalScore.textContent=sc;
-  const reason=window._deathReason||'unknown';
-  finalMsg.textContent=String(msg||'Game over')+' ['+reason+']';
+  finalMsg.textContent=String(msg||'Game over');
   setTimeout(()=>{overlay.classList.add('active')},800);
   if(title.includes('Win'))sfxWin();else sfxDeath();
+}
+
+function copyDebug(){
+  const state={
+    death:window._deathReason||'unknown',
+    dir:window._playerDir||{x:1,y:0},
+    tick:gameTick,
+    player:{segments:snakes[0]?snakes[0].length:0,body:snakes[0]||[]},
+    ais:[],
+    bombs:bombs||[],
+    powerUps:powerUps||{}
+  };
+  for(let i=1;i<snakes.length;i++){
+    state.ais.push({segments:snakes[i].length,head:snakes[i][0],body:snakes[i]});
+  }
+  const el=document.getElementById('copyDebugBtn');
+  const orig=el.textContent;
+  try{
+    navigator.clipboard.writeText(JSON.stringify(state,null,2));
+    el.textContent='✅ Copied!';
+  }catch(e){
+    // Fallback for non-https
+    const ta=document.createElement('textarea');
+    ta.value=JSON.stringify(state,null,2);
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    el.textContent='✅ Copied!';
+  }
+  setTimeout(()=>{el.textContent=orig},2000);
 }
 
 function startGame(){
